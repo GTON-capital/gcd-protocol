@@ -4,5 +4,6 @@
 /build/
 coverage
 coverage.json
+flatten/
 
 **/artifacts/

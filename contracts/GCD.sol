@@ -13,7 +13,7 @@ import "./helpers/SafeMath.sol";
  * @title USDP token implementation
  * @dev ERC20 token
  **/
-contract USDP is Auth {
+contract GCD is Auth {
     using SafeMath for uint;
 
     // name of the token

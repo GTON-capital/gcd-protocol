@@ -8,15 +8,14 @@ pragma solidity 0.7.6;
 import "./helpers/SafeMath.sol";
 import "./VaultParameters.sol";
 import "./helpers/TransferHelper.sol";
-import "./USDP.sol";
+import "./GCD.sol";
 import "./interfaces/IWETH.sol";
-
 
 /**
  * @title Vault
- * @notice Vault is the core of Unit Protocol USDP Stablecoin system
+ * @notice Vault is the core of Unit Protocol GCD Stablecoin system
  * @notice Vault stores and manages collateral funds of all positions and counts debts
- * @notice Only Vault can manage supply of USDP token
+ * @notice Only Vault can manage supply of GCD token
  * @notice Vault will not be changed/upgraded after initial deployment for the current stablecoin version
  **/
 contract Vault is Auth {
@@ -32,8 +31,8 @@ contract Vault is Auth {
 
     uint public constant DENOMINATOR_1E2 = 1e2;
 
-    // USDP token address
-    address public immutable usdp;
+    // GCD token address
+    address public immutable gcd;
 
     // collaterals whitelist
     mapping(address => mapping(address => uint)) public collaterals;
@@ -73,11 +72,11 @@ contract Vault is Auth {
     /**
      * @param _parameters The address of the system parameters
      * @param _col COL token address
-     * @param _usdp USDP token address
+     * @param _gcd GCD token address
      **/
-    constructor(address _parameters, address _col, address _usdp, address payable _weth) Auth(_parameters) {
+    constructor(address _parameters, address _col, address _gcd, address payable _weth) Auth(_parameters) {
         col = _col;
-        usdp = _usdp;
+        gcd = _gcd;
         weth = _weth;
     }
 
@@ -193,10 +192,10 @@ contract Vault is Auth {
     }
 
     /**
-     * @dev Increases position's debt and mints USDP token
+     * @dev Increases position's debt and mints GCD token
      * @param asset The address of the main collateral token
      * @param user The address of a position's owner
-     * @param amount The amount of USDP to borrow
+     * @param amount The amount of GCD to borrow
      **/
     function borrow(
         address asset,
@@ -213,19 +212,19 @@ contract Vault is Auth {
         debts[asset][user] = debts[asset][user].add(amount);
         tokenDebts[asset] = tokenDebts[asset].add(amount);
 
-        // check USDP limit for token
+        // check GCD limit for token
         require(tokenDebts[asset] <= vaultParameters.tokenDebtLimit(asset), "Unit Protocol: ASSET_DEBT_LIMIT");
 
-        USDP(usdp).mint(user, amount);
+        GCD(gcd).mint(user, amount);
 
         return debts[asset][user];
     }
 
     /**
-     * @dev Decreases position's debt and burns USDP token
+     * @dev Decreases position's debt and burns GCD token
      * @param asset The address of the main collateral token
      * @param user The address of a position's owner
-     * @param amount The amount of USDP to repay
+     * @param amount The amount of GCD to repay
      * @return updated debt of a position
      **/
     function repay(
@@ -241,7 +240,7 @@ contract Vault is Auth {
         uint debt = debts[asset][user];
         debts[asset][user] = debt.sub(amount);
         tokenDebts[asset] = tokenDebts[asset].sub(amount);
-        USDP(usdp).burn(user, amount);
+        GCD(gcd).burn(user, amount);
 
         return debts[asset][user];
     }
@@ -262,7 +261,7 @@ contract Vault is Auth {
      * @dev Deletes position and transfers collateral to liquidation system
      * @param asset The address of the main collateral token
      * @param positionOwner The address of a position's owner
-     * @param initialPrice The starting price of collateral in USDP
+     * @param initialPrice The starting price of collateral in GCD
      **/
     function triggerLiquidation(
         address asset,
@@ -291,8 +290,8 @@ contract Vault is Auth {
      * @param colToLiquidator The amount of COL to send to a liquidator
      * @param mainAssetToPositionOwner The amount of main asset to send to a position owner
      * @param colToPositionOwner The amount of COL to send to a position owner
-     * @param repayment The repayment in USDP
-     * @param penalty The liquidation penalty in USDP
+     * @param repayment The repayment in GCD
+     * @param penalty The liquidation penalty in GCD
      * @param liquidator The address of a liquidator
      **/
     function liquidate(
@@ -325,15 +324,15 @@ contract Vault is Auth {
 
         destroy(asset, positionOwner);
 
-        // charge liquidation fee and burn USDP
+        // charge liquidation fee and burn GCD
         if (repayment > penalty) {
             if (penalty != 0) {
-                TransferHelper.safeTransferFrom(usdp, liquidator, vaultParameters.foundation(), penalty);
+                TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), penalty);
             }
-            USDP(usdp).burn(liquidator, repayment.sub(penalty));
+            GCD(gcd).burn(liquidator, repayment.sub(penalty));
         } else {
             if (repayment != 0) {
-                TransferHelper.safeTransferFrom(usdp, liquidator, vaultParameters.foundation(), repayment);
+                TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), repayment);
             }
         }
 

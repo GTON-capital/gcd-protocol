@@ -43,7 +43,7 @@ module.exports = {
 			provider: function() {
 				return getWalletProvider("ropsten");
 			},
-			gasPrice: 14 * 1e9,
+			gasPrice: 10 * 1e9,
 			skipDryRun: true
 		},
 		rinkeby: {
@@ -79,7 +79,11 @@ module.exports = {
 	api_keys: {
 		etherscan: process.env.ETHERSCAN
 	  },
-	plugins: ["solidity-coverage", "truffle-plugin-verify"],
+	plugins: [
+		"solidity-coverage", 
+		"truffle-plugin-verify",
+		"truffle-flatten",
+	],
 	compilers: {
 		solc: {
 			version: '0.7.6'

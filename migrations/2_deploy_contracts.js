@@ -1,6 +1,6 @@
 const Vault = artifacts.require('Vault');
 const Parameters = artifacts.require('VaultParameters');
-const USDP = artifacts.require('USDP');
+const GCD = artifacts.require('GCD');
 const WETH = artifacts.require('WETH');
 const DummyToken = artifacts.require('DummyToken');
 const IUniswapV2Factory = artifacts.require('IUniswapV2Factory');
@@ -84,10 +84,10 @@ module.exports = async function(deployer, network) {
   // const uniswapOracle = await UniswapOracle.at("uniswapOracleAddress");
 
   const parametersAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
-  const usdp = await deployer.deploy(USDP, parametersAddr);
+  const gcd = await deployer.deploy(GCD, parametersAddr);
   const vaultAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
   const parameters = await deployer.deploy(Parameters, vaultAddr, this.deployer);
-  const vault = await deployer.deploy(Vault, parameters.address, col.address, usdp.address, wethAddress);
+  const vault = await deployer.deploy(Vault, parameters.address, col.address, gcd.address, wethAddress);
   // const liquidator = await deployer.deploy(Liquidator, vault.address, uniswapOracle.address, this.deployer);
   // const vaultManager = await deployer.deploy(
   //   VaultManagerUniswap,

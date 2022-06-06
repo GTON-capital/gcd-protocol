@@ -52,7 +52,7 @@ contract VaultParameters is Auth {
     // map token to liquidation fee percentage, 0 decimals
     mapping(address => uint) public liquidationFee;
 
-    // map token to USDP mint limit
+    // map token to GCD mint limit
     mapping(address => uint) public tokenDebtLimit;
 
     // permissions to modify the Vault
@@ -111,19 +111,19 @@ contract VaultParameters is Auth {
      * @param asset The address of the main collateral token
      * @param stabilityFeeValue The percentage of the year stability fee (3 decimals)
      * @param liquidationFeeValue The liquidation fee percentage (0 decimals)
-     * @param usdpLimit The USDP token issue limit
+     * @param gcdLimit The GCD token issue limit
      * @param oracles The enables oracle types
      **/
     function setCollateral(
         address asset,
         uint stabilityFeeValue,
         uint liquidationFeeValue,
-        uint usdpLimit,
+        uint gcdLimit,
         uint[] calldata oracles
     ) external onlyManager {
         setStabilityFee(asset, stabilityFeeValue);
         setLiquidationFee(asset, liquidationFeeValue);
-        setTokenDebtLimit(asset, usdpLimit);
+        setTokenDebtLimit(asset, gcdLimit);
         for (uint i=0; i < oracles.length; i++) {
             setOracleType(oracles[i], asset, true);
         }
@@ -173,7 +173,7 @@ contract VaultParameters is Auth {
 
     /**
      * @notice Only manager is able to call this function
-     * @dev Sets USDP limit for a specific collateral
+     * @dev Sets GCD limit for a specific collateral
      * @param asset The address of the main collateral token
      * @param limit The limit number
      **/

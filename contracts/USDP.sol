@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: bsl-1.1
 
 /*
-  Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
+  Copyright 2020 Artem Zakharov (az@unit.xyz).
 */
 pragma solidity 0.7.6;
 
@@ -17,10 +17,10 @@ contract USDP is Auth {
     using SafeMath for uint;
 
     // name of the token
-    string public constant name = "USDP Stablecoin";
+    string public constant name = "GCD Stablecoin";
 
     // symbol of the token
-    string public constant symbol = "USDP";
+    string public constant symbol = "GCD";
 
     // version of the token
     string public constant version = "1";
@@ -60,7 +60,7 @@ contract USDP is Auth {
       * @param amount The amount of token to be minted
      **/
     function mint(address to, uint amount) external onlyVault {
-        require(to != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(to != address(0), "GCD: ZERO_ADDRESS");
 
         balanceOf[to] = balanceOf[to].add(amount);
         totalSupply = totalSupply.add(amount);
@@ -105,11 +105,11 @@ contract USDP is Auth {
       * @param amount The amount of token to be transferred
      **/
     function transferFrom(address from, address to, uint amount) public returns (bool) {
-        require(to != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(balanceOf[from] >= amount, "Unit Protocol: INSUFFICIENT_BALANCE");
+        require(to != address(0), "GCD: ZERO_ADDRESS");
+        require(balanceOf[from] >= amount, "GCD: INSUFFICIENT_BALANCE");
 
         if (from != msg.sender) {
-            require(allowance[from][msg.sender] >= amount, "Unit Protocol: INSUFFICIENT_ALLOWANCE");
+            require(allowance[from][msg.sender] >= amount, "GCD: INSUFFICIENT_ALLOWANCE");
             _approve(from, msg.sender, allowance[from][msg.sender].sub(amount));
         }
         balanceOf[from] = balanceOf[from].sub(amount);
@@ -167,8 +167,8 @@ contract USDP is Auth {
     }
 
     function _approve(address owner, address spender, uint amount) internal virtual {
-        require(owner != address(0), "Unit Protocol: approve from the zero address");
-        require(spender != address(0), "Unit Protocol: approve to the zero address");
+        require(owner != address(0), "GCD: approve from the zero address");
+        require(spender != address(0), "GCD: approve to the zero address");
 
         allowance[owner][spender] = amount;
         emit Approval(owner, spender, amount);

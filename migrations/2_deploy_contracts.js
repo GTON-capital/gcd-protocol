@@ -11,6 +11,18 @@ const { calculateAddressAtNonce, deployContractBytecode } = require('../test/hel
 const UniswapV2FactoryDeployCode = require('../test/helpers/UniswapV2DeployCode');
 const BN = web3.utils.BN;
 
+const gtonAddressRopsten = "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6"
+const daiRopsten = "0xa20b90104dd80cdda195dd42b691e924ae89c1c1"
+const usdcRopsten = "0x46aff14b22e4717934edc2cb99bcb5ea1185a5e8"
+const wethRopsten = "0xc778417e063141139fce010982780140aa0cd5ab"
+const uniswapOracleRopsten = ""
+
+const gtonAddress = gtonAddressRopsten
+const daiAddress = daiRopsten
+const usdcAddress = usdcRopsten
+const wethAddress = wethRopsten
+const uniswapOracleAddress = uniswapOracleRopsten
+
 const getUtils = context => {
   return {
     poolDeposit: async (token, amount, decimals) => {
@@ -43,16 +55,16 @@ module.exports = async function(deployer, network) {
   // //   return;
   // // }
   //
-  // await deployer;
-  //
-  // this.deployer = deployer.networks[network].from;
-  //
-  // const col = await deployer.deploy(DummyToken, "COL testnet", "COL", 18, ether('1000000'));
-  // const dai = await deployer.deploy(DummyToken, "DAI testnet", "DAI", 18, ether('1000000'));
-  // const usdc = await deployer.deploy(DummyToken, "USDC testnet", "USDC", 6, String(10000000 * 10 ** 6));
-  // this.weth = await deployer.deploy(WETH);
+  await deployer;
+  
+  this.deployer = deployer.networks[network].from;
+  
+  const col = await DummyToken.at(gtonAddress); // Main collateral token
+  // const dai = await DummyToken.at(daiAddress);
+  // const usdc = await DummyToken.at(usdcAddress);
+  this.weth = await WETH.at(wethAddress);
   // const mainCollateral = await deployer.deploy(DummyToken, "STAKE", "STAKE", 18, ether('1000000'));
-  //
+  
   // await this.weth.deposit({ value: ether('1') });
   //
   // const uniswapFactoryAddr = await deployContractBytecode(UniswapV2FactoryDeployCode, this.deployer, web3);
@@ -68,11 +80,14 @@ module.exports = async function(deployer, network) {
   //   this.weth.address,
   // );
   //
-  // const parametersAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
-  // const usdp = await deployer.deploy(USDP, parametersAddr);
-  // const vaultAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
-  // const parameters = await deployer.deploy(Parameters, vaultAddr, this.deployer);
-  // const vault = await deployer.deploy(Vault, parameters.address, col.address, usdp.address, );
+
+  // const uniswapOracle = await UniswapOracle.at("uniswapOracleAddress");
+
+  const parametersAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
+  const usdp = await deployer.deploy(USDP, parametersAddr);
+  const vaultAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
+  const parameters = await deployer.deploy(Parameters, vaultAddr, this.deployer);
+  const vault = await deployer.deploy(Vault, parameters.address, col.address, usdp.address, wethAddress);
   // const liquidator = await deployer.deploy(Liquidator, vault.address, uniswapOracle.address, this.deployer);
   // const vaultManager = await deployer.deploy(
   //   VaultManagerUniswap,

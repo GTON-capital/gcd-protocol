@@ -1,4 +1,5 @@
 const Vault = artifacts.require('Vault');
+const OracleRegistry = artifacts.require('OracleRegistry');
 const Parameters = artifacts.require('VaultParameters');
 const GCD = artifacts.require('GCD');
 const WETH = artifacts.require('WETH');
@@ -86,8 +87,9 @@ module.exports = async function(deployer, network) {
   const parametersAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
   const gcd = await deployer.deploy(GCD, parametersAddr);
   const vaultAddr = calculateAddressAtNonce(this.deployer, await web3.eth.getTransactionCount(this.deployer) + 1, web3);
-  const parameters = await deployer.deploy(Parameters, vaultAddr, this.deployer);
+  const parameters = await deployer.deploy(Parameters, vaultAddr, this.deployer); // Last - foundation, should be multisig
   const vault = await deployer.deploy(Vault, parameters.address, col.address, gcd.address, wethAddress);
+  const oracleRegistry = await deployer.deploy(OracleRegistry, parameters.address, wethAddress);
   // const liquidator = await deployer.deploy(Liquidator, vault.address, uniswapOracle.address, this.deployer);
   // const vaultManager = await deployer.deploy(
   //   VaultManagerUniswap,

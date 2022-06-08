@@ -5,5 +5,10 @@
 coverage
 coverage.json
 flatten/
+cache/
+artifacts/
+types/
+
+yarn-error.log
 
 **/artifacts/

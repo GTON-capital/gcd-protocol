@@ -8,7 +8,9 @@ flatten/
 cache/
 artifacts/
 types/
+package-lock.json
 
 yarn-error.log
+yarn.lock
 
 **/artifacts/

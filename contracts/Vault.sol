@@ -13,7 +13,7 @@ import "./interfaces/IWETH.sol";
 
 /**
  * @title Vault
- * @notice Vault is the core of Unit Protocol GCD Stablecoin system
+ * @notice Vault is the core of GCD Protocol GCD Stablecoin system
  * @notice Vault stores and manages collateral funds of all positions and counts debts
  * @notice Only Vault can manage supply of GCD token
  * @notice Vault will not be changed/upgraded after initial deployment for the current stablecoin version
@@ -65,7 +65,7 @@ contract Vault is Auth {
     mapping(address => mapping(address => uint)) public lastUpdate;
 
     modifier notLiquidating(address asset, address user) {
-        require(liquidationBlock[asset][user] == 0, "Unit Protocol: LIQUIDATING_POSITION");
+        require(liquidationBlock[asset][user] == 0, "GCD Protocol: LIQUIDATING_POSITION");
         _;
     }
 
@@ -82,7 +82,7 @@ contract Vault is Auth {
 
     // only accept ETH via fallback from the WETH contract
     receive() external payable {
-        require(msg.sender == weth, "Unit Protocol: RESTRICTED");
+        require(msg.sender == weth, "GCD Protocol: RESTRICTED");
     }
 
     /**
@@ -207,13 +207,13 @@ contract Vault is Auth {
     notLiquidating(asset, user)
     returns(uint)
     {
-        require(vaultParameters.isOracleTypeEnabled(oracleType[asset][user], asset), "Unit Protocol: WRONG_ORACLE_TYPE");
+        require(vaultParameters.isOracleTypeEnabled(oracleType[asset][user], asset), "GCD Protocol: WRONG_ORACLE_TYPE");
         update(asset, user);
         debts[asset][user] = debts[asset][user].add(amount);
         tokenDebts[asset] = tokenDebts[asset].add(amount);
 
         // check GCD limit for token
-        require(tokenDebts[asset] <= vaultParameters.tokenDebtLimit(asset), "Unit Protocol: ASSET_DEBT_LIMIT");
+        require(tokenDebts[asset] <= vaultParameters.tokenDebtLimit(asset), "GCD Protocol: ASSET_DEBT_LIMIT");
 
         GCD(gcd).mint(user, amount);
 
@@ -273,7 +273,7 @@ contract Vault is Auth {
     notLiquidating(asset, positionOwner)
     {
         // reverts if oracle type is disabled
-        require(vaultParameters.isOracleTypeEnabled(oracleType[asset][positionOwner], asset), "Unit Protocol: WRONG_ORACLE_TYPE");
+        require(vaultParameters.isOracleTypeEnabled(oracleType[asset][positionOwner], asset), "GCD Protocol: WRONG_ORACLE_TYPE");
 
         // fix the debt
         debts[asset][positionOwner] = getTotalDebt(asset, positionOwner);
@@ -308,7 +308,7 @@ contract Vault is Auth {
         external
         hasVaultAccess
     {
-        require(liquidationBlock[asset][positionOwner] != 0, "Unit Protocol: NOT_TRIGGERED_LIQUIDATION");
+        require(liquidationBlock[asset][positionOwner] != 0, "GCD Protocol: NOT_TRIGGERED_LIQUIDATION");
 
         uint mainAssetInPosition = collaterals[asset][positionOwner];
         uint mainAssetToFoundation = mainAssetInPosition.sub(mainAssetToLiquidator).sub(mainAssetToPositionOwner);

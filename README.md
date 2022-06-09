@@ -1,6 +1,6 @@
-# Unit Protocol
+# GCD Protocol
 
-[Unit Protocol](https://unit.xyz/) is a decentralized protocol that allows you to mint stablecoin [USDP](contracts/USDP.sol) using a variety of tokens as collateral. See the [docs](https://docs.unit.xyz/).
+[Unit Protocol](https://gton.capital/) is a decentralized protocol that allows you to mint stablecoin [USDP](contracts/USDP.sol) using a variety of tokens as collateral. See the [docs](https://docs.unit.xyz/).
 
 #### [Contract addresses](CONTRACTS.md)
 

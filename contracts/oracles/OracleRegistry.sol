@@ -36,12 +36,12 @@ contract OracleRegistry is Auth {
     event KeydonixOracleTypes();
 
     modifier validAddress(address asset) {
-        require(asset != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(asset != address(0), "GCD Protocol: ZERO_ADDRESS");
         _;
     }
 
     modifier validType(uint _type) {
-        require(_type != 0, "Unit Protocol: INVALID_TYPE");
+        require(_type != 0, "GCD Protocol: INVALID_TYPE");
         _;
     }
 
@@ -55,8 +55,8 @@ contract OracleRegistry is Auth {
 
     function setKeydonixOracleTypes(uint[] calldata _keydonixOracleTypes) public onlyManager {
         for (uint i = 0; i < _keydonixOracleTypes.length; i++) {
-            require(_keydonixOracleTypes[i] != 0, "Unit Protocol: INVALID_TYPE");
-            require(oracleByType[_keydonixOracleTypes[i]] != address(0), "Unit Protocol: INVALID_ORACLE");
+            require(_keydonixOracleTypes[i] != 0, "GCD Protocol: INVALID_TYPE");
+            require(oracleByType[_keydonixOracleTypes[i]] != address(0), "GCD Protocol: INVALID_ORACLE");
         }
 
         keydonixOracleTypes = _keydonixOracleTypes;

@@ -54,11 +54,11 @@ contract OraclePoolToken is IOracleUsd {
         } else if (pair.token1() == WETH) {
             underlyingAsset = pair.token0();
         } else {
-            revert("Unit Protocol: NOT_REGISTERED_PAIR");
+            revert("GCD Protocol: NOT_REGISTERED_PAIR");
         }
 
         address oracle = oracleRegistry.oracleByAsset(underlyingAsset);
-        require(oracle != address(0), "Unit Protocol: ORACLE_NOT_FOUND");
+        require(oracle != address(0), "GCD Protocol: ORACLE_NOT_FOUND");
 
         uint eAvg;
 

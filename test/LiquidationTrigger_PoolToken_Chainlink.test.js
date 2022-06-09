@@ -81,7 +81,7 @@ contract('LiquidationTriggerChainlinkPoolToken', function([
 		await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
 
 		const tx = this.utils.triggerLiquidation(this.poolToken, positionOwner, liquidator);
-		await this.utils.expectRevert(tx, "Unit Protocol: SAFE_POSITION");
+		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");
 	})
 
 });

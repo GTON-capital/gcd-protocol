@@ -139,7 +139,7 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 					mainAmount, // main
 					usdpAmount,	// USDP
 				);
-				await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+				await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 			})
 
 			describe('Reverts when collateralization is incorrect', function() {
@@ -153,7 +153,7 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 						mainAmount, // main
 						usdpAmount,	// USDP
 					);
-					await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 				})
 
 				it('Reverts when main collateral is not approved', async function() {
@@ -181,7 +181,7 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
 
 				const tx = this.utils.exit(this.wrappedAsset, 0, 0, 0);
-				await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+				await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 			})
 
 			it('Reverts when position becomes undercollateralized', async function() {
@@ -191,7 +191,7 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
 
 				const tx = this.utils.exit(this.wrappedAsset, mainAmount, 0, 0);
-				await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+				await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 			})
 		})
 	})

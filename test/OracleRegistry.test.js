@@ -122,7 +122,7 @@ contract('CollateralRegistry', function([
 		const describeUnauthorized = function(contract, method, args) {
 			describe(`Contract: ${contract}, method: ${method}`, function() {
 				it('Should throw on non-authorized access', async function() {
-					await expectRevert(this[contract][method](...args, { from: asset1 }), 'Unit Protocol: AUTH_FAILED')
+					await expectRevert(this[contract][method](...args, { from: asset1 }), 'GCD Protocol: AUTH_FAILED')
 				});
 			})
 		}
@@ -138,12 +138,12 @@ contract('CollateralRegistry', function([
 
 		it('Should fail to set non-existent oracle for asset', async function() {
 			const tx = this.oracleRegistry.setOracleTypeForAsset(asset1, 1);
-			await expectRevert(tx, 'Unit Protocol: ZERO_ADDRESS');
+			await expectRevert(tx, 'GCD Protocol: ZERO_ADDRESS');
 		});
 
 		it('Should fail to set invalid oracle type', async function() {
 			const tx = this.oracleRegistry.setOracle(0, oracle1);
-			await expectRevert(tx, 'Unit Protocol: INVALID_TYPE');
+			await expectRevert(tx, 'GCD Protocol: INVALID_TYPE');
 		});
 	});
 });

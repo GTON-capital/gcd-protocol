@@ -24,7 +24,7 @@ contract BearingAssetOracle is IOracleUsd, Auth  {
     event NewUnderlying(address indexed bearing, address indexed underlying);
 
     constructor(address _vaultParameters, address _oracleRegistry) Auth(_vaultParameters) {
-        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "GCD Protocol: ZERO_ADDRESS");
         oracleRegistry = IOracleRegistry(_oracleRegistry);
     }
 
@@ -38,16 +38,16 @@ contract BearingAssetOracle is IOracleUsd, Auth  {
         if (amount == 0) return 0;
         (address underlying, uint underlyingAmount) = bearingToUnderlying(bearing, amount);
         IOracleUsd _oracleForUnderlying = IOracleUsd(oracleRegistry.oracleByAsset(underlying));
-        require(address(_oracleForUnderlying) != address(0), "Unit Protocol: ORACLE_NOT_FOUND");
+        require(address(_oracleForUnderlying) != address(0), "GCD Protocol: ORACLE_NOT_FOUND");
         return _oracleForUnderlying.assetToUsd(underlying, underlyingAmount);
     }
 
     function bearingToUnderlying(address bearing, uint amount) public view returns (address, uint) {
         address _underlying = underlyings[bearing];
-        require(_underlying != address(0), "Unit Protocol: UNDEFINED_UNDERLYING");
+        require(_underlying != address(0), "GCD Protocol: UNDEFINED_UNDERLYING");
         uint _reserve = ERC20Like(_underlying).balanceOf(address(bearing));
         uint _totalSupply = ERC20Like(bearing).totalSupply();
-        require(amount <= _totalSupply, "Unit Protocol: AMOUNT_EXCEEDS_SUPPLY");
+        require(amount <= _totalSupply, "GCD Protocol: AMOUNT_EXCEEDS_SUPPLY");
         return (_underlying, amount * _reserve / _totalSupply);
     }
 

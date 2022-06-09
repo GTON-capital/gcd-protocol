@@ -22,7 +22,7 @@ contract YvTokenOracle is IOracleUsd, Auth  {
     IOracleRegistry public immutable oracleRegistry;
 
     constructor(address _vaultParameters, address _oracleRegistry) Auth(_vaultParameters) {
-        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "GCD Protocol: ZERO_ADDRESS");
         oracleRegistry = IOracleRegistry(_oracleRegistry);
     }
 
@@ -31,15 +31,15 @@ contract YvTokenOracle is IOracleUsd, Auth  {
         if (amount == 0) return 0;
         (address underlying, uint underlyingAmount) = bearingToUnderlying(bearing, amount);
         IOracleUsd _oracleForUnderlying = IOracleUsd(oracleRegistry.oracleByAsset(underlying));
-        require(address(_oracleForUnderlying) != address(0), "Unit Protocol: ORACLE_NOT_FOUND");
+        require(address(_oracleForUnderlying) != address(0), "GCD Protocol: ORACLE_NOT_FOUND");
         return _oracleForUnderlying.assetToUsd(underlying, underlyingAmount);
     }
 
     function bearingToUnderlying(address bearing, uint amount) public view returns (address, uint) {
         address _underlying = IyvToken(bearing).token();
-        require(_underlying != address(0), "Unit Protocol: UNDEFINED_UNDERLYING");
+        require(_underlying != address(0), "GCD Protocol: UNDEFINED_UNDERLYING");
         uint _totalSupply = ERC20Like(bearing).totalSupply();
-        require(amount <= _totalSupply, "Unit Protocol: AMOUNT_EXCEEDS_SUPPLY");
+        require(amount <= _totalSupply, "GCD Protocol: AMOUNT_EXCEEDS_SUPPLY");
         uint _pricePerShare = IyvToken(bearing).pricePerShare();
         uint _decimals = IyvToken(bearing).decimals();
         return (_underlying, amount.mul(_pricePerShare).div(10**_decimals));

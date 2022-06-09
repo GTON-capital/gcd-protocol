@@ -148,7 +148,7 @@ const utils = require('./helpers/utils');
 						mainAmount, // main
 						usdpAmount,	// USDP
 					);
-					await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
 
 				describe('Reverts when collateralization is incorrect', function() {
@@ -161,7 +161,7 @@ const utils = require('./helpers/utils');
 							mainAmount, // main
 							usdpAmount,	// USDP
 						);
-						await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+						await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 					})
 
 					it('Reverts when main collateral is not approved', async function() {
@@ -187,7 +187,7 @@ const utils = require('./helpers/utils');
 					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
 
 					const tx = this.utils.exit(this.poolToken, 0, 0);
-					await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
 
 				it('Reverts when position state after exit becomes undercollateralized', async function() {
@@ -197,7 +197,7 @@ const utils = require('./helpers/utils');
 					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
 
 					const tx = this.utils.exit(this.poolToken, mainAmount, 0);
-					await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 				})
 			})
 		})

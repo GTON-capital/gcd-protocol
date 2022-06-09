@@ -24,7 +24,7 @@ contract WrappedToUnderlyingOracle is IOracleUsd, Auth {
     event NewUnderlying(address indexed wrapped, address indexed underlying);
 
     constructor(address _vaultParameters, address _oracleRegistry) Auth(_vaultParameters) {
-        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_vaultParameters != address(0) && _oracleRegistry != address(0), "GCD Protocol: ZERO_ADDRESS");
         oracleRegistry = IOracleRegistry(_oracleRegistry);
     }
 
@@ -45,10 +45,10 @@ contract WrappedToUnderlyingOracle is IOracleUsd, Auth {
     function _getOracleAndUnderlying(address asset) internal view returns (address oracle, address underlying) {
 
         underlying = assetToUnderlying[asset];
-        require(underlying != address(0), "Unit Protocol: UNDEFINED_UNDERLYING");
+        require(underlying != address(0), "GCD Protocol: UNDEFINED_UNDERLYING");
 
         oracle = oracleRegistry.oracleByAsset(underlying);
-        require(oracle != address(0), "Unit Protocol: NO_ORACLE_FOUND");
+        require(oracle != address(0), "GCD Protocol: NO_ORACLE_FOUND");
     }
 
 }

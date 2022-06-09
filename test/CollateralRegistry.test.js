@@ -82,7 +82,7 @@ contract('CollateralRegistry', function([
 		const describeUnauthorized = function(contract, method, args) {
 			describe(`Contract: ${contract}, method: ${method}`, function() {
 				it('Should throw on non-authorized access', async function() {
-					await expectRevert(this[contract][method](...args, { from: collateralAddress1 }), 'Unit Protocol: AUTH_FAILED')
+					await expectRevert(this[contract][method](...args, { from: collateralAddress1 }), 'GCD Protocol: AUTH_FAILED')
 				});
 			})
 		}
@@ -94,14 +94,14 @@ contract('CollateralRegistry', function([
 		it('Should throw adding existing asset', async function() {
 			await this.collateralRegistry.addCollateral(collateralAddress2);
 			const tx = this.collateralRegistry.addCollateral(collateralAddress2);
-			await expectRevert(tx, 'Unit Protocol: ALREADY_EXIST');
+			await expectRevert(tx, 'GCD Protocol: ALREADY_EXIST');
 		});
 
 
 		it('Should throw removing non-existent asset', async function() {
 			await this.collateralRegistry.addCollateral(collateralAddress1);
 			const tx = this.collateralRegistry.removeCollateral(collateralAddress2);
-			await expectRevert(tx, 'Unit Protocol: DOES_NOT_EXIST');
+			await expectRevert(tx, 'GCD Protocol: DOES_NOT_EXIST');
 		});
 	});
 });

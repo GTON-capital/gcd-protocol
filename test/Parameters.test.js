@@ -254,14 +254,14 @@ contract('Parameters', function([
 		const describeUnauthorized = function(contract, method, args) {
 			describe(`Contract: ${contract}, method: ${method}`, function() {
 				it('Should throw on non-authorized access', async function() {
-					await this.utils.expectRevert(this[contract][method](...args, { from: secondAccount }), 'Unit Protocol: AUTH_FAILED')
+					await this.utils.expectRevert(this[contract][method](...args, { from: secondAccount }), 'GCD Protocol: AUTH_FAILED')
 				});
 			})
 		}
 		const describeIncorrectValue = function(contract, method, args, errMsg) {
 			describe(`Contract: ${contract}, method: ${method}`, function() {
 				it('Should throw on incorrect value', async function() {
-					await this.utils.expectRevert(this[contract][method](...args), `Unit Protocol: ${errMsg}`)
+					await this.utils.expectRevert(this[contract][method](...args), `GCD Protocol: ${errMsg}`)
 				});
 			})
 		}
@@ -293,7 +293,7 @@ contract('Parameters', function([
 				3,
 				5
 			);
-			await this.utils.expectRevert(tx, 'Unit Protocol: AUTH_FAILED');
+			await this.utils.expectRevert(tx, 'GCD Protocol: AUTH_FAILED');
 		});
 
 		describeUnauthorized('vaultManagerParameters', 'setInitialCollateralRatio', [thirdAccount, 1])

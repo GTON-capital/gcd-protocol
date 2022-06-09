@@ -31,9 +31,9 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
         IAggregator chainlinkAggregator
     )
     {
-        require(address(uniFactory) != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(weth != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(address(chainlinkAggregator) != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(address(uniFactory) != address(0), "GCD Protocol: ZERO_ADDRESS");
+        require(weth != address(0), "GCD Protocol: ZERO_ADDRESS");
+        require(address(chainlinkAggregator) != address(0), "GCD Protocol: ZERO_ADDRESS");
 
         uniswapFactory = uniFactory;
         WETH = weth;
@@ -48,13 +48,13 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
         }
 
         address uniswapPair = uniswapFactory.getPair(asset, WETH);
-        require(uniswapPair != address(0), "Unit Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
+        require(uniswapPair != address(0), "GCD Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
 
         // token reserve of {Token}/WETH pool
         uint tokenReserve = ERC20Like(asset).balanceOf(uniswapPair);
 
         // revert if there is no liquidity
-        require(tokenReserve != 0, "Unit Protocol: UNISWAP_EMPTY_POOL");
+        require(tokenReserve != 0, "GCD Protocol: UNISWAP_EMPTY_POOL");
 
         return ethToUsd(assetToEth(asset, amount, proofData)).div(tokenReserve);
     }
@@ -63,7 +63,7 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
     function assetToEth(address asset, uint amount, ProofDataStruct memory proofData) public override view returns (uint) {
 
         address uniswapPair = uniswapFactory.getPair(asset, WETH);
-        require(uniswapPair != address(0), "Unit Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
+        require(uniswapPair != address(0), "GCD Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
 
         proofData;
 
@@ -78,7 +78,7 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
      * returns Price of given amount of Ether in USD (0 decimals)
      **/
     function ethToUsd(uint ethAmount) public override view returns (uint) {
-        require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "Unit Protocol: OUTDATED_CHAINLINK_PRICE");
+        require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "GCD Protocol: OUTDATED_CHAINLINK_PRICE");
         uint ethUsdPrice = uint(ethUsdChainlinkAggregator.latestAnswer());
         return ethAmount.mul(ethUsdPrice).div(ETH_USD_DENOMINATOR);
     }

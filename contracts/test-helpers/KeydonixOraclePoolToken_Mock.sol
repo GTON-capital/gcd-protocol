@@ -36,7 +36,7 @@ contract KeydonixOraclePoolToken_Mock is ChainlinkedKeydonixOraclePoolTokenAbstr
         } else if (pair.token1() == uniswapOracleMainAsset.WETH()) {
             ePool = _reserve1;
         } else {
-            revert("Unit Protocol: NOT_REGISTERED_PAIR");
+            revert("GCD Protocol: NOT_REGISTERED_PAIR");
         }
 
         uint lpSupply = pair.totalSupply();

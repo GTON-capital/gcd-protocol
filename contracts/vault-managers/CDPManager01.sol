@@ -62,7 +62,7 @@ contract CDPManager01 is ReentrancyGuard {
             _vaultManagerParameters != address(0) && 
             _oracleRegistry != address(0) && 
             _cdpRegistry != address(0),
-                "Unit Protocol: INVALID_ARGS"
+                "GCD Protocol: INVALID_ARGS"
         );
         vaultManagerParameters = IVaultManagerParameters(_vaultManagerParameters);
         vault = IVault(IVaultParameters(IVaultManagerParameters(_vaultManagerParameters).vaultParameters()).vault());
@@ -73,7 +73,7 @@ contract CDPManager01 is ReentrancyGuard {
 
     // only accept ETH via fallback from the WETH contract
     receive() external payable {
-        require(msg.sender == WETH, "Unit Protocol: RESTRICTED");
+        require(msg.sender == WETH, "GCD Protocol: RESTRICTED");
     }
 
     /**
@@ -85,9 +85,9 @@ contract CDPManager01 is ReentrancyGuard {
       * @param usdpAmount The amount of USDP token to borrow
       **/
     function join(address asset, uint assetAmount, uint usdpAmount) public nonReentrant checkpoint(asset, msg.sender) {
-        require(usdpAmount != 0 || assetAmount != 0, "Unit Protocol: USELESS_TX");
+        require(usdpAmount != 0 || assetAmount != 0, "GCD Protocol: USELESS_TX");
 
-        require(IToken(asset).decimals() <= 18, "Unit Protocol: NOT_SUPPORTED_DECIMALS");
+        require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 
         if (usdpAmount == 0) {
 
@@ -128,7 +128,7 @@ contract CDPManager01 is ReentrancyGuard {
 
         if (msg.value != 0) {
             IWETH(WETH).deposit{value: msg.value}();
-            require(IWETH(WETH).transfer(msg.sender, msg.value), "Unit Protocol: WETH_TRANSFER_FAILED");
+            require(IWETH(WETH).transfer(msg.sender, msg.value), "GCD Protocol: WETH_TRANSFER_FAILED");
         }
 
         join(WETH, msg.value, usdpAmount);
@@ -144,7 +144,7 @@ contract CDPManager01 is ReentrancyGuard {
     function exit(address asset, uint assetAmount, uint usdpAmount) public nonReentrant checkpoint(asset, msg.sender) returns (uint) {
 
         // check usefulness of tx
-        require(assetAmount != 0 || usdpAmount != 0, "Unit Protocol: USELESS_TX");
+        require(assetAmount != 0 || usdpAmount != 0, "GCD Protocol: USELESS_TX");
 
         uint debt = vault.debts(asset, msg.sender);
 
@@ -202,10 +202,10 @@ contract CDPManager01 is ReentrancyGuard {
       **/
     function exit_Eth(uint ethAmount, uint usdpAmount) public returns (uint) {
         usdpAmount = exit(WETH, ethAmount, usdpAmount);
-        require(IWETH(WETH).transferFrom(msg.sender, address(this), ethAmount), "Unit Protocol: WETH_TRANSFER_FROM_FAILED");
+        require(IWETH(WETH).transferFrom(msg.sender, address(this), ethAmount), "GCD Protocol: WETH_TRANSFER_FROM_FAILED");
         IWETH(WETH).withdraw(ethAmount);
         (bool success, ) = msg.sender.call{value:ethAmount}("");
-        require(success, "Unit Protocol: ETH_TRANSFER_FAILED");
+        require(success, "GCD Protocol: ETH_TRANSFER_FAILED");
         return usdpAmount;
     }
 
@@ -241,7 +241,7 @@ contract CDPManager01 is ReentrancyGuard {
         uint usdLimit = usdValue_q112 * vaultManagerParameters.initialCollateralRatio(asset) / Q112 / 100;
 
         // revert if collateralization is not enough
-        require(vault.getTotalDebt(asset, owner) <= usdLimit, "Unit Protocol: UNDERCOLLATERALIZED");
+        require(vault.getTotalDebt(asset, owner) <= usdLimit, "GCD Protocol: UNDERCOLLATERALIZED");
     }
     
     // Liquidation Trigger
@@ -259,7 +259,7 @@ contract CDPManager01 is ReentrancyGuard {
         uint usdValue_q112 = getCollateralUsdValue_q112(asset, owner);
         
         // reverts if a position is not liquidatable
-        require(_isLiquidatablePosition(asset, owner, usdValue_q112), "Unit Protocol: SAFE_POSITION");
+        require(_isLiquidatablePosition(asset, owner, usdValue_q112), "GCD Protocol: SAFE_POSITION");
 
         uint liquidationDiscount_q112 = usdValue_q112.mul(
             vaultManagerParameters.liquidationDiscount(asset)
@@ -300,9 +300,9 @@ contract CDPManager01 is ReentrancyGuard {
 
     function _ensureOracle(address asset) internal view {
         uint oracleType = oracleRegistry.oracleTypeByAsset(asset);
-        require(oracleType != 0, "Unit Protocol: INVALID_ORACLE_TYPE");
+        require(oracleType != 0, "GCD Protocol: INVALID_ORACLE_TYPE");
         address oracle = oracleRegistry.oracleByType(oracleType);
-        require(oracle != address(0), "Unit Protocol: DISABLED_ORACLE");
+        require(oracle != address(0), "GCD Protocol: DISABLED_ORACLE");
     }
 
     /**
@@ -355,7 +355,7 @@ contract CDPManager01 is ReentrancyGuard {
         
         uint collateralLiqPrice = debt.mul(100).mul(Q112).div(vaultManagerParameters.liquidationRatio(asset));
 
-        require(IToken(asset).decimals() <= 18, "Unit Protocol: NOT_SUPPORTED_DECIMALS");
+        require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 
         return collateralLiqPrice / vault.collaterals(asset, owner) / 10 ** (18 - IToken(asset).decimals());
     }

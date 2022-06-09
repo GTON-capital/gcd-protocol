@@ -22,19 +22,19 @@ contract Auth {
 
     // ensures tx's sender is a manager
     modifier onlyManager() {
-        require(vaultParameters.isManager(msg.sender), "Unit Protocol: AUTH_FAILED");
+        require(vaultParameters.isManager(msg.sender), "GCD Protocol: AUTH_FAILED");
         _;
     }
 
     // ensures tx's sender is able to modify the Vault
     modifier hasVaultAccess() {
-        require(vaultParameters.canModifyVault(msg.sender), "Unit Protocol: AUTH_FAILED");
+        require(vaultParameters.canModifyVault(msg.sender), "GCD Protocol: AUTH_FAILED");
         _;
     }
 
     // ensures tx's sender is the Vault
     modifier onlyVault() {
-        require(msg.sender == vaultParameters.vault(), "Unit Protocol: AUTH_FAILED");
+        require(msg.sender == vaultParameters.vault(), "GCD Protocol: AUTH_FAILED");
         _;
     }
 }
@@ -77,8 +77,8 @@ contract VaultParameters is Auth {
      * Therefore, the Vault address can be pre-computed and passed as an argument before deployment.
     **/
     constructor(address payable _vault, address _foundation) Auth(address(this)) {
-        require(_vault != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(_foundation != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_vault != address(0), "GCD Protocol: ZERO_ADDRESS");
+        require(_foundation != address(0), "GCD Protocol: ZERO_ADDRESS");
 
         isManager[msg.sender] = true;
         vault = _vault;
@@ -101,7 +101,7 @@ contract VaultParameters is Auth {
      * @param newFoundation The new foundation address
      **/
     function setFoundation(address newFoundation) external onlyManager {
-        require(newFoundation != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(newFoundation != address(0), "GCD Protocol: ZERO_ADDRESS");
         foundation = newFoundation;
     }
 
@@ -156,7 +156,7 @@ contract VaultParameters is Auth {
      * @param newValue The liquidation fee percentage (0 decimals)
      **/
     function setLiquidationFee(address asset, uint newValue) public onlyManager {
-        require(newValue <= 100, "Unit Protocol: VALUE_OUT_OF_RANGE");
+        require(newValue <= 100, "GCD Protocol: VALUE_OUT_OF_RANGE");
         liquidationFee[asset] = newValue;
     }
 

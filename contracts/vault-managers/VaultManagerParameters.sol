@@ -76,7 +76,7 @@ contract VaultManagerParameters is Auth {
      * @param newValue The collateralization ratio (0 decimals)
      **/
     function setInitialCollateralRatio(address asset, uint newValue) public onlyManager {
-        require(newValue != 0 && newValue <= 100, "Unit Protocol: INCORRECT_COLLATERALIZATION_VALUE");
+        require(newValue != 0 && newValue <= 100, "GCD Protocol: INCORRECT_COLLATERALIZATION_VALUE");
         initialCollateralRatio[asset] = newValue;
     }
 
@@ -87,7 +87,7 @@ contract VaultManagerParameters is Auth {
      * @param newValue The liquidation ratio (0 decimals)
      **/
     function setLiquidationRatio(address asset, uint newValue) public onlyManager {
-        require(newValue != 0 && newValue >= initialCollateralRatio[asset], "Unit Protocol: INCORRECT_COLLATERALIZATION_VALUE");
+        require(newValue != 0 && newValue >= initialCollateralRatio[asset], "GCD Protocol: INCORRECT_COLLATERALIZATION_VALUE");
         liquidationRatio[asset] = newValue;
     }
 
@@ -98,7 +98,7 @@ contract VaultManagerParameters is Auth {
      * @param newValue The liquidation discount (3 decimals)
      **/
     function setLiquidationDiscount(address asset, uint newValue) public onlyManager {
-        require(newValue < 1e5, "Unit Protocol: INCORRECT_DISCOUNT_VALUE");
+        require(newValue < 1e5, "GCD Protocol: INCORRECT_DISCOUNT_VALUE");
         liquidationDiscount[asset] = newValue;
     }
 
@@ -109,7 +109,7 @@ contract VaultManagerParameters is Auth {
      * @param newValue The devaluation period in blocks
      **/
     function setDevaluationPeriod(address asset, uint newValue) public onlyManager {
-        require(newValue != 0, "Unit Protocol: INCORRECT_DEVALUATION_VALUE");
+        require(newValue != 0, "GCD Protocol: INCORRECT_DEVALUATION_VALUE");
         devaluationPeriod[asset] = newValue;
     }
 
@@ -121,7 +121,7 @@ contract VaultManagerParameters is Auth {
      * @param max The max percentage (0 decimals)
      **/
     function setColPartRange(address asset, uint min, uint max) public onlyManager {
-        require(max <= 100 && min <= max, "Unit Protocol: WRONG_RANGE");
+        require(max <= 100 && min <= max, "GCD Protocol: WRONG_RANGE");
         minColPercent[asset] = min;
         maxColPercent[asset] = max;
     }

@@ -24,7 +24,7 @@ contract ForceTransferAssetStore is Auth, IForceTransferAssetStore {
 
     constructor(address _vaultParameters, address[] memory initialAssets) Auth(_vaultParameters) {
         for (uint i = 0; i < initialAssets.length; i++) {
-            require(!shouldForceTransfer[initialAssets[i]], "Unit Protocol: Already exists");
+            require(!shouldForceTransfer[initialAssets[i]], "GCD Protocol: Already exists");
             shouldForceTransfer[initialAssets[i]] = true;
             emit ForceTransferAssetAdded(initialAssets[i]);
         }
@@ -36,8 +36,8 @@ contract ForceTransferAssetStore is Auth, IForceTransferAssetStore {
      * @param asset The address of the asset
      **/
     function add(address asset) external override onlyManager {
-        require(!shouldForceTransfer[asset], "Unit Protocol: Already exists");
-        require(asset != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(!shouldForceTransfer[asset], "GCD Protocol: Already exists");
+        require(asset != address(0), "GCD Protocol: ZERO_ADDRESS");
         shouldForceTransfer[asset] = true;
         emit ForceTransferAssetAdded(asset);
     }

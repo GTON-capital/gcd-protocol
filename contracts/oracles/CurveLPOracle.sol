@@ -34,7 +34,7 @@ contract CurveLPOracle is IOracleUsd {
      * @param _oracleRegistry The address of the OracleRegistry contract
      **/
     constructor(address _curveProvider, address _oracleRegistry) {
-        require(_curveProvider != address(0) && _oracleRegistry != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_curveProvider != address(0) && _oracleRegistry != address(0), "GCD Protocol: ZERO_ADDRESS");
         curveProvider = ICurveProvider(_curveProvider);
         oracleRegistry = IOracleRegistry(_oracleRegistry);
     }
@@ -44,18 +44,18 @@ contract CurveLPOracle is IOracleUsd {
         if (amount == 0) return 0;
         ICurveRegistry cR = ICurveRegistry(curveProvider.get_registry());
         ICurvePool cP = ICurvePool(cR.get_pool_from_lp_token(asset));
-        require(address(cP) != address(0), "Unit Protocol: NOT_A_CURVE_LP");
-        require(ERC20Like(asset).decimals() == uint8(18), "Unit Protocol: INCORRECT_DECIMALS");
+        require(address(cP) != address(0), "GCD Protocol: NOT_A_CURVE_LP");
+        require(ERC20Like(asset).decimals() == uint8(18), "GCD Protocol: INCORRECT_DECIMALS");
 
         uint coinsCount = cR.get_n_coins(address(cP))[0];
-        require(coinsCount != 0, "Unit Protocol: CURVE_INCORRECT_COINS_COUNT");
+        require(coinsCount != 0, "GCD Protocol: CURVE_INCORRECT_COINS_COUNT");
 
         uint minCoinPrice_q112;
 
         for (uint i = 0; i < coinsCount; i++) {
             address _coin = cP.coins(i);
             address oracle = oracleRegistry.oracleByAsset(_coin);
-            require(oracle != address(0), "Unit Protocol: ORACLE_NOT_FOUND");
+            require(oracle != address(0), "GCD Protocol: ORACLE_NOT_FOUND");
             uint _coinPrice_q112 = IOracleUsd(oracle).assetToUsd(_coin, 10 ** ERC20Like(_coin).decimals()) / 1 ether;
             if (i == 0 || _coinPrice_q112 < minCoinPrice_q112) {
                 minCoinPrice_q112 = _coinPrice_q112;

@@ -260,7 +260,7 @@ const time = require('./helpers/time');
 						mainAmount, // main
 						usdpAmount,	// USDP
 					);
-					await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
 
 				describe('Reverts when collateralization is incorrect', function() {
@@ -274,7 +274,7 @@ const time = require('./helpers/time');
 							mainAmount, // main
 							usdpAmount,	// USDP
 						);
-						await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+						await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 					})
 
 					it('Reverts when main collateral is not approved', async function() {
@@ -304,7 +304,7 @@ const time = require('./helpers/time');
 						mainAmount,
 						usdpAmount,
 					);
-					await this.utils.expectRevert(tx, "Unit Protocol: NOT_SPAWNED_POSITION");
+					await this.utils.expectRevert(tx, "GCD Protocol: NOT_SPAWNED_POSITION");
 				})
 			})
 
@@ -316,7 +316,7 @@ const time = require('./helpers/time');
 					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
 
 					const tx = this.utils.exit(this.mainCollateral, 0, 0, 0);
-					await this.utils.expectRevert(tx, "Unit Protocol: USELESS_TX");
+					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
 
 				it('Reverts when position becomes undercollateralized', async function() {
@@ -326,7 +326,7 @@ const time = require('./helpers/time');
 					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
 
 					const tx = this.utils.exit(this.mainCollateral, mainAmount, 0, 0);
-					await this.utils.expectRevert(tx, "Unit Protocol: UNDERCOLLATERALIZED");
+					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 				})
 			})
 		})

@@ -50,7 +50,7 @@ contract LiquidationAuction02 is ReentrancyGuard {
         require(
             _vaultManagerParameters != address(0) &&
             _forceTransferAssetStore != (address(0)),
-                "Unit Protocol: INVALID_ARGS"
+                "GCD Protocol: INVALID_ARGS"
         );
         vaultManagerParameters = IVaultManagerParameters(_vaultManagerParameters);
         vault = IVault(IVaultParameters(IVaultManagerParameters(_vaultManagerParameters).vaultParameters()).vault());
@@ -64,7 +64,7 @@ contract LiquidationAuction02 is ReentrancyGuard {
      * @param owner The owner of a position
      **/
     function buyout(address asset, address owner) public nonReentrant checkpoint(asset, owner) {
-        require(vault.liquidationBlock(asset, owner) != 0, "Unit Protocol: LIQUIDATION_NOT_TRIGGERED");
+        require(vault.liquidationBlock(asset, owner) != 0, "GCD Protocol: LIQUIDATION_NOT_TRIGGERED");
         uint startingPrice = vault.liquidationPrice(asset, owner);
         uint blocksPast = block.number.sub(vault.liquidationBlock(asset, owner));
         uint depreciationPeriod = vaultManagerParameters.devaluationPeriod(asset);

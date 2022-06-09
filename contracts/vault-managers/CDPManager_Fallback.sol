@@ -62,7 +62,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
       _vaultManagerParameters != address(0) &&
       _oracleRegistry != address(0) &&
       _cdpRegistry != address(0),
-      "Unit Protocol: INVALID_ARGS"
+      "GCD Protocol: INVALID_ARGS"
     );
     vaultManagerParameters = IVaultManagerParameters(_vaultManagerParameters);
     vault = IVault(IVaultParameters(IVaultManagerParameters(_vaultManagerParameters).vaultParameters()).vault());
@@ -79,9 +79,9 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     * @param usdpAmount The amount of USDP token to borrow
     **/
   function join(address asset, uint assetAmount, uint usdpAmount, KeydonixOracleAbstract.ProofDataStruct calldata proofData) public nonReentrant checkpoint(asset, msg.sender) {
-    require(usdpAmount != 0 || assetAmount != 0, "Unit Protocol: USELESS_TX");
+    require(usdpAmount != 0 || assetAmount != 0, "GCD Protocol: USELESS_TX");
 
-    require(IToken(asset).decimals() <= 18, "Unit Protocol: NOT_SUPPORTED_DECIMALS");
+    require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 
     if (usdpAmount == 0) {
 
@@ -124,7 +124,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
   function exit(address asset, uint assetAmount, uint usdpAmount, KeydonixOracleAbstract.ProofDataStruct calldata proofData) public nonReentrant checkpoint(asset, msg.sender) returns (uint) {
 
     // check usefulness of tx
-    require(assetAmount != 0 || usdpAmount != 0, "Unit Protocol: USELESS_TX");
+    require(assetAmount != 0 || usdpAmount != 0, "GCD Protocol: USELESS_TX");
 
     uint debt = vault.debts(asset, msg.sender);
 
@@ -194,7 +194,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     uint usdLimit = usdValue_q112 * vaultManagerParameters.initialCollateralRatio(asset) / Q112 / 100;
 
     // revert if collateralization is not enough
-    require(vault.getTotalDebt(asset, owner) <= usdLimit, "Unit Protocol: UNDERCOLLATERALIZED");
+    require(vault.getTotalDebt(asset, owner) <= usdLimit, "GCD Protocol: UNDERCOLLATERALIZED");
   }
 
   // Liquidation Trigger
@@ -210,7 +210,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     uint usdValue_q112 = getCollateralUsdValue_q112(asset, owner, proofData);
 
     // reverts if a position is not liquidatable
-    require(_isLiquidatablePosition(asset, owner, usdValue_q112), "Unit Protocol: SAFE_POSITION");
+    require(_isLiquidatablePosition(asset, owner, usdValue_q112), "GCD Protocol: SAFE_POSITION");
 
     uint liquidationDiscount_q112 = usdValue_q112.mul(
       vaultManagerParameters.liquidationDiscount(asset)
@@ -252,9 +252,9 @@ contract CDPManager01_Fallback is ReentrancyGuard {
 
   function _selectOracleType(address asset) internal view returns (uint oracleType) {
     oracleType = _getOracleType(asset);
-    require(oracleType != 0, "Unit Protocol: INVALID_ORACLE_TYPE");
+    require(oracleType != 0, "GCD Protocol: INVALID_ORACLE_TYPE");
     address oracle = oracleRegistry.oracleByType(oracleType);
-    require(oracle != address(0), "Unit Protocol: DISABLED_ORACLE");
+    require(oracle != address(0), "GCD Protocol: DISABLED_ORACLE");
   }
 
   /**
@@ -309,7 +309,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
 
     uint collateralLiqPrice = debt.mul(100).mul(Q112).div(vaultManagerParameters.liquidationRatio(asset));
 
-    require(IToken(asset).decimals() <= 18, "Unit Protocol: NOT_SUPPORTED_DECIMALS");
+    require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 
     return collateralLiqPrice / vault.collaterals(asset, owner) / 10 ** (18 - IToken(asset).decimals());
   }
@@ -326,6 +326,6 @@ contract CDPManager01_Fallback is ReentrancyGuard {
         return keydonixOracleTypes[i];
       }
     }
-    revert("Unit Protocol: NO_ORACLE_FOUND");
+    revert("GCD Protocol: NO_ORACLE_FOUND");
   }
 }

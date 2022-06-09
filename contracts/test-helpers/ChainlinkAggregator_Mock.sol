@@ -20,7 +20,7 @@ contract ChainlinkAggregator_Mock {
     }
 
     function setPrice(int price) external {
-        require(msg.sender == admin, "Unit Protocol: UNAUTHORIZED");
+        require(msg.sender == admin, "GCD Protocol: UNAUTHORIZED");
         latestAnswer = price;
         latestTimestamp = block.timestamp;
         emit AnswerUpdated(int(price), block.timestamp, block.timestamp);

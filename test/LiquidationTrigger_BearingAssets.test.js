@@ -98,6 +98,6 @@ contract('LiquidationTriggerSimple', function([
 		await this.utils.join(this.bearingAsset, mainAmount, usdpAmount);
 
 		const tx = this.utils.triggerLiquidation(this.bearingAsset, positionOwner, liquidator);
-		await this.utils.expectRevert(tx, "Unit Protocol: SAFE_POSITION");
+		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");
 	})
 });

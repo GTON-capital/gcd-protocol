@@ -27,13 +27,13 @@ contract CDPRegistry {
     event Removed(address indexed asset, address indexed owner);
 
     constructor (address _vault, address _collateralRegistry) {
-        require(_vault != address(0) && _collateralRegistry != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(_vault != address(0) && _collateralRegistry != address(0), "GCD Protocol: ZERO_ADDRESS");
         vault = IVault(_vault);
         cr = ICollateralRegistry(_collateralRegistry);
     }
 
     function checkpoint(address asset, address owner) public {
-        require(asset != address(0) && owner != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(asset != address(0) && owner != address(0), "GCD Protocol: ZERO_ADDRESS");
 
         bool listed = isListed(asset, owner);
         bool alive = isAlive(asset, owner);
@@ -52,7 +52,7 @@ contract CDPRegistry {
     }
 
     function batchCheckpoint(address[] calldata assets, address[] calldata owners) external {
-        require(assets.length == owners.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == owners.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < owners.length; i++) {
             checkpoint(assets[i], owners[i]);
         }

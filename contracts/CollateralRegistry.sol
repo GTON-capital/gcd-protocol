@@ -24,7 +24,7 @@ contract CollateralRegistry is Auth {
     
     constructor(address _vaultParameters, address[] memory assets) Auth(_vaultParameters) {
         for (uint i = 0; i < assets.length; i++) {
-            require(!isCollateral(assets[i]), "Unit Protocol: ALREADY_EXIST");
+            require(!isCollateral(assets[i]), "GCD Protocol: ALREADY_EXIST");
             collateralList.push(assets[i]);
             collateralId[assets[i]] = i;
             emit CollateralAdded(assets[i]);
@@ -32,9 +32,9 @@ contract CollateralRegistry is Auth {
     }
 
     function addCollateral(address asset) public onlyManager {
-        require(asset != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(asset != address(0), "GCD Protocol: ZERO_ADDRESS");
 
-        require(!isCollateral(asset), "Unit Protocol: ALREADY_EXIST");
+        require(!isCollateral(asset), "GCD Protocol: ALREADY_EXIST");
 
         collateralId[asset] = collateralList.length;
         collateralList.push(asset);
@@ -43,9 +43,9 @@ contract CollateralRegistry is Auth {
     }
 
     function removeCollateral(address asset) public onlyManager {
-        require(asset != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(asset != address(0), "GCD Protocol: ZERO_ADDRESS");
 
-        require(isCollateral(asset), "Unit Protocol: DOES_NOT_EXIST");
+        require(isCollateral(asset), "GCD Protocol: DOES_NOT_EXIST");
 
         uint id = collateralId[asset];
 

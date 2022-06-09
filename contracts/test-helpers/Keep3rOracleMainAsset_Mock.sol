@@ -32,9 +32,9 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
         IAggregator chainlinkAggregator
     )
     {
-        require(address(uniFactory) != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(weth != address(0), "Unit Protocol: ZERO_ADDRESS");
-        require(address(chainlinkAggregator) != address(0), "Unit Protocol: ZERO_ADDRESS");
+        require(address(uniFactory) != address(0), "GCD Protocol: ZERO_ADDRESS");
+        require(weth != address(0), "GCD Protocol: ZERO_ADDRESS");
+        require(address(chainlinkAggregator) != address(0), "GCD Protocol: ZERO_ADDRESS");
 
         uniswapFactory = uniFactory;
         WETH = weth;
@@ -49,13 +49,13 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
         }
 
         address uniswapPair = uniswapFactory.getPair(asset, WETH);
-        require(uniswapPair != address(0), "Unit Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
+        require(uniswapPair != address(0), "GCD Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
 
         // token reserve of {Token}/WETH pool
         uint tokenReserve = ERC20Like(asset).balanceOf(uniswapPair);
 
         // revert if there is no liquidity
-        require(tokenReserve != 0, "Unit Protocol: UNISWAP_EMPTY_POOL");
+        require(tokenReserve != 0, "GCD Protocol: UNISWAP_EMPTY_POOL");
 
         // WETH reserve of {Token}/WETH pool
         uint wethReserve = ERC20Like(WETH).balanceOf(uniswapPair);
@@ -71,13 +71,13 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
         }
 
         address uniswapPair = uniswapFactory.getPair(asset, WETH);
-        require(uniswapPair != address(0), "Unit Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
+        require(uniswapPair != address(0), "GCD Protocol: UNISWAP_PAIR_DOES_NOT_EXIST");
 
         // token reserve of {Token}/WETH pool
         uint tokenReserve = ERC20Like(asset).balanceOf(uniswapPair);
 
         // revert if there is no liquidity
-        require(tokenReserve != 0, "Unit Protocol: UNISWAP_EMPTY_POOL");
+        require(tokenReserve != 0, "GCD Protocol: UNISWAP_EMPTY_POOL");
 
         // WETH reserve of {Token}/WETH pool
         uint wethReserve = ERC20Like(WETH).balanceOf(uniswapPair);
@@ -90,7 +90,7 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
      * returns Price of given amount of Ether in USD (0 decimals)
      **/
     function ethToUsd(uint ethAmount) public override view returns (uint) {
-        require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "Unit Protocol: OUTDATED_CHAINLINK_PRICE");
+        require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "GCD Protocol: OUTDATED_CHAINLINK_PRICE");
         uint ethUsdPrice = uint(ethUsdChainlinkAggregator.latestAnswer());
         return ethAmount.mul(ethUsdPrice).div(ETH_USD_DENOMINATOR);
     }

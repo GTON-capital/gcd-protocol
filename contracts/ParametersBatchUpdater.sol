@@ -47,7 +47,7 @@ contract ParametersBatchUpdater is Auth {
      * @param permit The array of permission flags
      **/
     function setManagers(address[] calldata who, bool[] calldata permit) external onlyManager {
-        require(who.length == permit.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(who.length == permit.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < who.length; i++) {
             vaultParameters.setManager(who[i], permit[i]);
         }
@@ -60,7 +60,7 @@ contract ParametersBatchUpdater is Auth {
      * @param permit The array of permission flags
      **/
     function setVaultAccesses(address[] calldata who, bool[] calldata permit) external onlyManager {
-        require(who.length == permit.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(who.length == permit.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < who.length; i++) {
             vaultParameters.setVaultAccess(who[i], permit[i]);
         }
@@ -73,7 +73,7 @@ contract ParametersBatchUpdater is Auth {
      * @param newValues The array of stability fee percentages (3 decimals)
      **/
     function setStabilityFees(address[] calldata assets, uint[] calldata newValues) public onlyManager {
-        require(assets.length == newValues.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == newValues.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultParameters.setStabilityFee(assets[i], newValues[i]);
         }
@@ -86,7 +86,7 @@ contract ParametersBatchUpdater is Auth {
      * @param newValues The array of liquidation fee percentages (0 decimals)
      **/
     function setLiquidationFees(address[] calldata assets, uint[] calldata newValues) public onlyManager {
-        require(assets.length == newValues.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == newValues.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultParameters.setLiquidationFee(assets[i], newValues[i]);
         }
@@ -100,7 +100,7 @@ contract ParametersBatchUpdater is Auth {
      * @param flags The array of control flags
      **/
     function setOracleTypes(uint[] calldata _types, address[] calldata assets, bool[] calldata flags) public onlyManager {
-        require(_types.length == assets.length && _types.length == flags.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(_types.length == assets.length && _types.length == flags.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < _types.length; i++) {
             vaultParameters.setOracleType(_types[i], assets[i], flags[i]);
         }
@@ -113,70 +113,70 @@ contract ParametersBatchUpdater is Auth {
      * @param limits The borrow USDP limits
      **/
     function setTokenDebtLimits(address[] calldata assets, uint[] calldata limits) public onlyManager {
-        require(assets.length == limits.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == limits.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultParameters.setTokenDebtLimit(assets[i], limits[i]);
         }
     }
 
     function changeOracleTypes(address[] calldata assets, address[] calldata users, uint[] calldata oracleTypes) public onlyManager {
-        require(assets.length == users.length && assets.length == oracleTypes.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == users.length && assets.length == oracleTypes.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             IVault(vaultParameters.vault()).changeOracleType(assets[i], users[i], oracleTypes[i]);
         }
     }
 
     function setInitialCollateralRatios(address[] calldata assets, uint[] calldata values) public onlyManager {
-        require(assets.length == values.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == values.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultManagerParameters.setInitialCollateralRatio(assets[i], values[i]);
         }
     }
 
     function setLiquidationRatios(address[] calldata assets, uint[] calldata values) public onlyManager {
-        require(assets.length == values.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == values.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultManagerParameters.setLiquidationRatio(assets[i], values[i]);
         }
     }
 
     function setLiquidationDiscounts(address[] calldata assets, uint[] calldata values) public onlyManager {
-        require(assets.length == values.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == values.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultManagerParameters.setLiquidationDiscount(assets[i], values[i]);
         }
     }
 
     function setDevaluationPeriods(address[] calldata assets, uint[] calldata values) public onlyManager {
-        require(assets.length == values.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(assets.length == values.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             vaultManagerParameters.setDevaluationPeriod(assets[i], values[i]);
         }
     }
 
     function setOracleTypesInRegistry(uint[] calldata oracleTypes, address[] calldata oracles) public onlyManager {
-        require(oracleTypes.length == oracles.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(oracleTypes.length == oracles.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < oracleTypes.length; i++) {
             oracleRegistry.setOracle(oracleTypes[i], oracles[i]);
         }
     }
 
     function setOracleTypesToAssets(address[] calldata assets, uint[] calldata oracleTypes) public onlyManager {
-        require(oracleTypes.length == assets.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(oracleTypes.length == assets.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             oracleRegistry.setOracleTypeForAsset(assets[i], oracleTypes[i]);
         }
     }
 
     function setOracleTypesToAssetsBatch(address[][] calldata assets, uint[] calldata oracleTypes) public onlyManager {
-        require(oracleTypes.length == assets.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(oracleTypes.length == assets.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < assets.length; i++) {
             oracleRegistry.setOracleTypeForAssets(assets[i], oracleTypes[i]);
         }
     }
 
     function setUnderlyings(address[] calldata bearings, address[] calldata underlyings) public onlyManager {
-        require(bearings.length == underlyings.length, "Unit Protocol: ARGUMENTS_LENGTH_MISMATCH");
+        require(bearings.length == underlyings.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
         for (uint i = 0; i < bearings.length; i++) {
             IBearingAssetOracle(oracleRegistry.oracleByType(BEARING_ASSET_ORACLE_TYPE)).setUnderlying(bearings[i], underlyings[i]);
         }

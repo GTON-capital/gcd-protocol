@@ -41,7 +41,7 @@ module.exports = {
     ropsten: {
       url: "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       accounts: [PRIVATE_KEY],
-      gasPrice: 244 * 1e9,
+      gasPrice: 12 * 1e9,
       gasMultiplier: 1,
     },
     ftm: {

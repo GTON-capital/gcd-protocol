@@ -9,7 +9,7 @@ pragma solidity 0.7.6;
 
 /**
  * @title Auth
- * @dev Manages USDP's system access
+ * @dev Manages GCD's system access
  **/
 contract Auth {
 

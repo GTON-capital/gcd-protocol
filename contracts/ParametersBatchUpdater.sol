@@ -108,9 +108,9 @@ contract ParametersBatchUpdater is Auth {
 
     /**
      * @notice Only manager is able to call this function
-     * @dev Sets USDP limits for a provided collaterals
+     * @dev Sets GCD limits for a provided collaterals
      * @param assets The addresses of the main collateral tokens
-     * @param limits The borrow USDP limits
+     * @param limits The borrow GCD limits
      **/
     function setTokenDebtLimits(address[] calldata assets, uint[] calldata limits) public onlyManager {
         require(assets.length == limits.length, "GCD Protocol: ARGUMENTS_LENGTH_MISMATCH");
@@ -190,7 +190,7 @@ contract ParametersBatchUpdater is Auth {
         uint liquidationRatioValue,
         uint liquidationDiscountValue,
         uint devaluationPeriodValue,
-        uint usdpLimit,
+        uint gcdLimit,
         uint[] calldata oracles
     ) external onlyManager {
         for (uint i = 0; i < assets.length; i++) {
@@ -202,7 +202,7 @@ contract ParametersBatchUpdater is Auth {
                 liquidationRatioValue,
                 liquidationDiscountValue,
                 devaluationPeriodValue,
-                usdpLimit,
+                gcdLimit,
                 oracles,
                 0,
                 0

@@ -1,15 +1,15 @@
 const Parameters = artifacts.require('VaultParameters');
 const { constants, expectEvent, expectRevert } = require('openzeppelin-test-helpers');
 const { ZERO_ADDRESS} = constants;
-const USDP = artifacts.require('USDP');
+const GCD = artifacts.require('GCD');
 const BN = web3.utils.BN;
 const { expect } = require('chai');
 
-contract('USDP', function ([deployer, owner, recipient, anotherAccount]) {
+contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
     beforeEach(async function () {
         const parameters = await Parameters.new(deployer, deployer);
         await parameters.setVaultAccess(deployer, true);
-        this.token = await USDP.new(parameters.address);
+        this.token = await GCD.new(parameters.address);
         await this.token.mint(owner, new BN(100));
     });
 

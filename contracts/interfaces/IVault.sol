@@ -33,7 +33,7 @@ interface IVault {
     function tokenDebts ( address ) external view returns ( uint256 );
     function triggerLiquidation ( address asset, address positionOwner, uint256 initialPrice ) external;
     function update ( address asset, address user ) external;
-    function usdp (  ) external view returns ( address );
+    function gcd (  ) external view returns ( address );
     function vaultParameters (  ) external view returns ( address );
     function weth (  ) external view returns ( address payable );
     function withdrawCol ( address asset, address user, uint256 amount ) external;

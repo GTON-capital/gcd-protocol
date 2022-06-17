@@ -26,56 +26,56 @@ const time = require('./helpers/time');
 			describe('Spawn', function() {
 				it('Should spawn position', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					const { logs } = await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					const { logs } = await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					expectEvent.inLogs(logs, 'Join', {
 						asset: this.mainCollateral.address,
 						user: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.mainCollateral.address, deployer);
-					const usdpBalance = await this.usdp.balanceOf(deployer);
+					const gcdBalance = await this.gcd.balanceOf(deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-					expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
+					expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
 				})
 
 				it('Should spawn position using ETH', async function() {
 					const mainAmount = ether('2');
-					const usdpAmount = ether('1');
+					const gcdAmount = ether('1');
 
 					const wethInVaultBefore = await this.weth.balanceOf(this.vault.address);
 
-					const { logs } = await this.utils.spawnEth(mainAmount, usdpAmount);
+					const { logs } = await this.utils.spawnEth(mainAmount, gcdAmount);
 
 					expectEvent.inLogs(logs, 'Join', {
 						asset: this.weth.address,
 						user: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const wethInVaultAfter = await this.weth.balanceOf(this.vault.address);
 					expect(wethInVaultAfter.sub(wethInVaultBefore)).to.be.bignumber.equal(mainAmount);
 
 					const mainAmountInPosition = await this.vault.collaterals(this.weth.address, deployer);
-					const usdpBalance = await this.usdp.balanceOf(deployer);
+					const gcdBalance = await this.gcd.balanceOf(deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-					expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
+					expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
 				})
 			})
 
 			describe('Repay & withdraw', function() {
 				it('Should repay the debt of a position and withdraw collaterals', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					const { logs } = await this.utils.repayAllAndWithdraw(this.mainCollateral, deployer);
 
@@ -83,7 +83,7 @@ const time = require('./helpers/time');
 						asset: this.mainCollateral.address,
 						user: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.mainCollateral.address, deployer);
@@ -94,9 +94,9 @@ const time = require('./helpers/time');
 				it('Should accumulate fee when stability fee above zero and make repayment', async function() {
 					await this.vaultParameters.setStabilityFee(this.mainCollateral.address, 3000); // 3% st. fee
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					const timeStart = await time.latest();
 
@@ -104,18 +104,18 @@ const time = require('./helpers/time');
 
 					const accumulatedDebt = await this.vault.getTotalDebt(this.mainCollateral.address, deployer);
 
-					let expectedDebt = usdpAmount.mul(new BN('3000')).mul((await time.latest()).sub(timeStart)).div(new BN(365*24*60*60)).div(new BN('100000')).add(usdpAmount);
+					let expectedDebt = gcdAmount.mul(new BN('3000')).mul((await time.latest()).sub(timeStart)).div(new BN(365*24*60*60)).div(new BN('100000')).add(gcdAmount);
 
 					expect(accumulatedDebt.div(new BN(10 ** 12))).to.be.bignumber.equal(
 						expectedDebt.div(new BN(10 ** 12))
 					);
 
-					// get some usdp to cover fee
+					// get some gcd to cover fee
 					await this.utils.updatePrice();
 					await this.utils.spawnEth(ether('2'), ether('1'), ether('2'));
 
 					// repay debt partially
-					await this.utils.repay(this.mainCollateral, deployer, usdpAmount.div(new BN(2)));
+					await this.utils.repay(this.mainCollateral, deployer, gcdAmount.div(new BN(2)));
 
 					let accumulatedDebtAfterRepayment = await this.vault.getTotalDebt(this.mainCollateral.address, deployer);
 					expect(accumulatedDebtAfterRepayment.div(new BN(10 ** 12))).to.be.bignumber.equal(
@@ -127,63 +127,63 @@ const time = require('./helpers/time');
 
 				it('Should partially repay the debt of a position and withdraw collaterals partially', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					const mainToWithdraw = ether('50');
-					const usdpToWithdraw = ether('2.5');
+					const gcdToWithdraw = ether('2.5');
 
-					const { logs } = await this.utils.withdrawAndRepay(this.mainCollateral, mainToWithdraw, usdpToWithdraw);
+					const { logs } = await this.utils.withdrawAndRepay(this.mainCollateral, mainToWithdraw, gcdToWithdraw);
 
 					expectEvent.inLogs(logs, 'Exit', {
 						asset: this.mainCollateral.address,
 						user: deployer,
 						main: mainToWithdraw,
-						usdp: usdpToWithdraw,
+						gcd: gcdToWithdraw,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.mainCollateral.address, deployer);
-					const usdpInPosition = await this.vault.debts(this.mainCollateral.address, deployer);
+					const gcdInPosition = await this.vault.debts(this.mainCollateral.address, deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.sub(mainToWithdraw));
-					expect(usdpInPosition).to.be.bignumber.equal(usdpAmount.sub(usdpToWithdraw));
+					expect(gcdInPosition).to.be.bignumber.equal(gcdAmount.sub(gcdToWithdraw));
 				})
 
 				it('Should partially repay the debt of a position and withdraw collaterals partially using ETH', async function() {
 					const mainAmount = ether('2');
-					const usdpAmount = ether('1');
+					const gcdAmount = ether('1');
 
-					await this.utils.spawnEth(mainAmount, usdpAmount);
+					await this.utils.spawnEth(mainAmount, gcdAmount);
 
 					const mainToWithdraw = ether('1');
-					const usdpToWithdraw = ether('0.5');
+					const gcdToWithdraw = ether('0.5');
 
 					const wethBalanceBefore = await balance.current(this.weth.address);
 
-					const { logs } = await this.utils.withdrawAndRepayEth(mainToWithdraw, usdpToWithdraw);
+					const { logs } = await this.utils.withdrawAndRepayEth(mainToWithdraw, gcdToWithdraw);
 
 					expectEvent.inLogs(logs, 'Exit', {
 						asset: this.weth.address,
 						user: deployer,
 						main: mainToWithdraw,
-						usdp: usdpToWithdraw,
+						gcd: gcdToWithdraw,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.weth.address, deployer);
-					const usdpInPosition = await this.vault.debts(this.weth.address, deployer);
+					const gcdInPosition = await this.vault.debts(this.weth.address, deployer);
 					const wethBalanceAfter = await balance.current(this.weth.address);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.sub(mainToWithdraw));
-					expect(usdpInPosition).to.be.bignumber.equal(usdpAmount.sub(usdpToWithdraw));
+					expect(gcdInPosition).to.be.bignumber.equal(gcdAmount.sub(gcdToWithdraw));
 					expect(wethBalanceBefore.sub(wethBalanceAfter)).to.be.bignumber.equal(mainToWithdraw);
 				})
 
 				it('Should repay the debt of a position and withdraw collaterals using ETH', async function() {
 					const mainAmount = ether('2');
-					const usdpAmount = ether('1');
+					const gcdAmount = ether('1');
 
-					await this.utils.spawnEth(mainAmount, usdpAmount);
+					await this.utils.spawnEth(mainAmount, gcdAmount);
 
 					const wethInVaultBefore = await this.weth.balanceOf(this.vault.address);
 
@@ -193,7 +193,7 @@ const time = require('./helpers/time');
 						asset: this.weth.address,
 						user: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const wethInVaultAfter = await this.weth.balanceOf(this.vault.address);
@@ -205,46 +205,46 @@ const time = require('./helpers/time');
 				})
 			})
 
-			it('Should deposit collaterals to position and mint USDP', async function () {
+			it('Should deposit collaterals to position and mint GCD', async function () {
 				let mainAmount = ether('100');
-				let usdpAmount = ether('20');
+				let gcdAmount = ether('20');
 
-				await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+				await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
-				const { logs } = await this.utils.join(this.mainCollateral, mainAmount, usdpAmount);
+				const { logs } = await this.utils.join(this.mainCollateral, mainAmount, gcdAmount);
 
 				expectEvent.inLogs(logs, 'Join', {
 					asset: this.mainCollateral.address,
 					user: deployer,
 					main: mainAmount,
-					usdp: usdpAmount,
+					gcd: gcdAmount,
 				});
 
 				const mainAmountInPosition = await this.vault.collaterals(this.mainCollateral.address, deployer);
-				const usdpBalance = await this.usdp.balanceOf(deployer);
+				const gcdBalance = await this.gcd.balanceOf(deployer);
 
 				expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.mul(new BN(2)));
-				expect(usdpBalance).to.be.bignumber.equal(usdpAmount.mul(new BN(2)));
+				expect(gcdBalance).to.be.bignumber.equal(gcdAmount.mul(new BN(2)));
 			})
 
-			it('Should withdraw collaterals from position and repay (burn) USDP', async function () {
+			it('Should withdraw collaterals from position and repay (burn) GCD', async function () {
 				let mainAmount = ether('100');
-				let usdpAmount = ether('20');
+				let gcdAmount = ether('20');
 
-				await this.utils.spawn(this.mainCollateral, mainAmount.mul(new BN(2)), usdpAmount.mul(new BN(2)));
+				await this.utils.spawn(this.mainCollateral, mainAmount.mul(new BN(2)), gcdAmount.mul(new BN(2)));
 
-				const usdpSupplyBefore = await this.usdp.totalSupply();
+				const gcdSupplyBefore = await this.gcd.totalSupply();
 
-				await this.utils.exit(this.mainCollateral, mainAmount, usdpAmount);
+				await this.utils.exit(this.mainCollateral, mainAmount, gcdAmount);
 
-				const usdpSupplyAfter = await this.usdp.totalSupply();
+				const gcdSupplyAfter = await this.gcd.totalSupply();
 
 				const mainAmountInPosition = await this.vault.collaterals(this.mainCollateral.address, deployer);
-				const usdpBalance = await this.usdp.balanceOf(deployer);
+				const gcdBalance = await this.gcd.balanceOf(deployer);
 
 				expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-				expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
-				expect(usdpSupplyAfter).to.be.bignumber.equal(usdpSupplyBefore.sub(usdpAmount));
+				expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
+				expect(gcdSupplyAfter).to.be.bignumber.equal(gcdSupplyBefore.sub(gcdAmount));
 			})
 		});
 
@@ -252,13 +252,13 @@ const time = require('./helpers/time');
 			describe('Spawn', function() {
 				it('Reverts non valuable tx', async function() {
 					const mainAmount = ether('0');
-					const usdpAmount = ether('0');
+					const gcdAmount = ether('0');
 
 					await this.utils.approveCollaterals(this.mainCollateral, mainAmount);
 					const tx = this.utils.spawn(
 						this.mainCollateral,
 						mainAmount, // main
-						usdpAmount,	// USDP
+						gcdAmount,	// GCD
 					);
 					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
@@ -266,25 +266,25 @@ const time = require('./helpers/time');
 				describe('Reverts when collateralization is incorrect', function() {
 					it('Not enough main collateral', async function() {
 						let mainAmount = ether('0');
-						const usdpAmount = ether('20');
+						const gcdAmount = ether('20');
 
 						await this.utils.approveCollaterals(this.mainCollateral, mainAmount);
 						const tx = this.utils.spawn(
 							this.mainCollateral,
 							mainAmount, // main
-							usdpAmount,	// USDP
+							gcdAmount,	// GCD
 						);
 						await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 					})
 
 					it('Reverts when main collateral is not approved', async function() {
 						const mainAmount = ether('100');
-						const usdpAmount = ether('20');
+						const gcdAmount = ether('20');
 
 						const tx = this.utils.spawn(
 							this.mainCollateral,
 							mainAmount, // main
-							usdpAmount,	// USDP
+							gcdAmount,	// GCD
 							{
 								noApprove: true
 							},
@@ -297,12 +297,12 @@ const time = require('./helpers/time');
 			describe('Join', function () {
 				it('Reverts non-spawned position', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
 					const tx = this.utils.join(
 						this.mainCollateral,
 						mainAmount,
-						usdpAmount,
+						gcdAmount,
 					);
 					await this.utils.expectRevert(tx, "GCD Protocol: NOT_SPAWNED_POSITION");
 				})
@@ -311,9 +311,9 @@ const time = require('./helpers/time');
 			describe('Exit', function () {
 				it('Reverts non valuable tx', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					const tx = this.utils.exit(this.mainCollateral, 0, 0, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
@@ -321,9 +321,9 @@ const time = require('./helpers/time');
 
 				it('Reverts when position becomes undercollateralized', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
-					await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+					await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 					const tx = this.utils.exit(this.mainCollateral, mainAmount, 0, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");

@@ -17,7 +17,7 @@ contract('LiquidationTriggerKeep3rPoolToken', function([
 
 	it('Should liquidate undercollateralized position', async function () {
 		const mainAmount = new BN('3');
-		const usdpAmount = new BN('78');
+		const gcdAmount = new BN('78');
 
 		const lpSupply = await this.poolToken.totalSupply();
 
@@ -26,12 +26,12 @@ contract('LiquidationTriggerKeep3rPoolToken', function([
 		 * collateral value = 44.72 * 2 = 134.16$
 		 * utilization percent = 78 / 134.16 = ~58%
 		 */
-		await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+		await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
-		// fill liquidator usdp balance
-		await this.usdp.transfer(liquidator, usdpAmount);
-		// approve usdp from liquidator to Vault
-		await this.usdp.approve(this.vault.address, usdpAmount);
+		// fill liquidator gcd balance
+		await this.gcd.transfer(liquidator, gcdAmount);
+		// approve gcd from liquidator to Vault
+		await this.gcd.approve(this.vault.address, gcdAmount);
 
 		/*
 		 * Dump the price of underlying token for ~20%
@@ -79,9 +79,9 @@ contract('LiquidationTriggerKeep3rPoolToken', function([
 
 	it('Should fail to trigger liquidation of collateralized position', async function () {
 		const mainAmount = new BN('3');
-		const usdpAmount = new BN('78');
+		const gcdAmount = new BN('78');
 
-		await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+		await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 		const tx = this.utils.triggerLiquidation(this.poolToken, positionOwner, liquidator);
 		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");

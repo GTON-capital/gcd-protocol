@@ -1,6 +1,6 @@
 # GCD Protocol
 
-[Unit Protocol](https://gton.capital/) is a decentralized protocol that allows you to mint stablecoin [USDP](contracts/USDP.sol) using a variety of tokens as collateral. See the [docs](https://docs.unit.xyz/).
+[GCD Protocol](https://gton.capital/) is a decentralized protocol that allows you to mint stablecoin [GCD](contracts/GCD.sol) using a variety of tokens as collateral. Based on [Unit Protocol](https://docs.unit.xyz/).
 
 #### [Contract addresses](CONTRACTS.md)
 
@@ -23,8 +23,8 @@
 | Name          | Mainnet | Bsc | Fantom | Gnosis |
 | ------------- |:-------------:|:-------------:|:-------------:|:-------------:|
 | Vault | [0xb1cFF81b9305166ff1EFc49A129ad2AfCd7BCf19](https://etherscan.io/address/0xb1cFF81b9305166ff1EFc49A129ad2AfCd7BCf19#code)      | [0xdacfeed000e12c356fb72ab5089e7dd80ff4dd93](https://bscscan.com/address/0xdacfeed000e12c356fb72ab5089e7dd80ff4dd93#code)      | [0xD7A9b0D75e51bfB91c843b23FB2C19aa3B8D958e](https://ftmscan.com/address/0xD7A9b0D75e51bfB91c843b23FB2C19aa3B8D958e) | [0x2EBb09eC5ECdc20800031f9d6Cee98f90127A822](https://blockscout.com/xdai/mainnet/address/0x2EBb09eC5ECdc20800031f9d6Cee98f90127A822) | 
-| USDP/USG | [0x1456688345527bE1f37E9e627DA0837D6f08C925](https://etherscan.io/address/0x1456688345527bE1f37E9e627DA0837D6f08C925#code)      | [0xdacd011a71f8c9619642bf482f1d4ceb338cffcf](https://bscscan.com/address/0xdacd011a71f8c9619642bf482f1d4ceb338cffcf#code)      | [0x3129aC70c738D398d1D74c87EAB9483FD56D16f8](https://ftmscan.com/address/0x3129aC70c738D398d1D74c87EAB9483FD56D16f8) | [0x068e56eBB63e5f98532bAF94fA1f9b9AE19Ba761](https://blockscout.com/xdai/mainnet/address/0x068e56eBB63e5f98532bAF94fA1f9b9AE19Ba761) |
-| USDP/USG bridged | [0x0770e27f92f0d0e716dc531037b8b87fefebe561](https://etherscan.io/address/0x0770e27f92f0d0e716dc531037b8b87fefebe561) (bridged from gnosis via omnibridge) | | | [0xFe7ed09C4956f7cdb54eC4ffCB9818Db2D7025b8](https://blockscout.com/xdai/mainnet/address/0xFe7ed09C4956f7cdb54eC4ffCB9818Db2D7025b8) (bridged from mainnet via omnibridge)|
+| GCD | [0x1456688345527bE1f37E9e627DA0837D6f08C925](https://etherscan.io/address/0x1456688345527bE1f37E9e627DA0837D6f08C925#code)      | [0xdacd011a71f8c9619642bf482f1d4ceb338cffcf](https://bscscan.com/address/0xdacd011a71f8c9619642bf482f1d4ceb338cffcf#code)      | [0x3129aC70c738D398d1D74c87EAB9483FD56D16f8](https://ftmscan.com/address/0x3129aC70c738D398d1D74c87EAB9483FD56D16f8) | [0x068e56eBB63e5f98532bAF94fA1f9b9AE19Ba761](https://blockscout.com/xdai/mainnet/address/0x068e56eBB63e5f98532bAF94fA1f9b9AE19Ba761) |
+| GCD bridged | [0x0770e27f92f0d0e716dc531037b8b87fefebe561](https://etherscan.io/address/0x0770e27f92f0d0e716dc531037b8b87fefebe561) (bridged from gnosis via omnibridge) | | | [0xFe7ed09C4956f7cdb54eC4ffCB9818Db2D7025b8](https://blockscout.com/xdai/mainnet/address/0xFe7ed09C4956f7cdb54eC4ffCB9818Db2D7025b8) (bridged from mainnet via omnibridge)|
 | VaultParameters      | [0xB46F8CF42e504Efe8BEf895f848741daA55e9f1D](https://etherscan.io/address/0xB46F8CF42e504Efe8BEf895f848741daA55e9f1D#code) | [0x56c7CA666d192332F72a5842E72eED5f59F0fb48](https://bscscan.com/address/0x56c7CA666d192332F72a5842E72eED5f59F0fb48#code) | [0xa8F0b5758041158Cf0375b7AdC8AC175ff031B6C](https://ftmscan.com/address/0xa8F0b5758041158Cf0375b7AdC8AC175ff031B6C) | [0x22a974DdF36EcE1568e843719E72Db3eC7066c43](https://blockscout.com/xdai/mainnet/address/0x22a974DdF36EcE1568e843719E72Db3eC7066c43) | 
 | VaultManagerParameters      | [0x203153522B9EAef4aE17c6e99851EE7b2F7D312E](https://etherscan.io/address/0x203153522B9EAef4aE17c6e99851EE7b2F7D312E#code)      | [0x99f2B13C28A4183a5d5e0fe02B1B5aeEe85FAF5A](https://bscscan.com/address/0x99f2B13C28A4183a5d5e0fe02B1B5aeEe85FAF5A#code)      | [0x1c7aEA8B6498F0854D1fCE542a27ed6a10D71d2f](https://ftmscan.com/address/0x1c7aEA8B6498F0854D1fCE542a27ed6a10D71d2f) | [0x9096c43f1E11d64bad829f962377663097F28346](https://blockscout.com/xdai/mainnet/address/0x9096c43f1E11d64bad829f962377663097F28346) |
 | VaultManagerBorrowFeeParameters      | [0xCbA7154bfBF898d9AB0cf0e259ABAB6CcbfB4894](https://etherscan.io/address/0xCbA7154bfBF898d9AB0cf0e259ABAB6CcbfB4894#code) | - | [0xb8b807C1841d38443D9A135f0109cf27DAc78Af4](https://ftmscan.com/address/0xb8b807C1841d38443D9A135f0109cf27DAc78Af4#code) | [0x431Fc83c3C28d470e56d2a6d5df981E43a1974De](https://blockscout.com/xdai/mainnet/address/0x431Fc83c3C28d470e56d2a6d5df981E43a1974De) |
@@ -81,7 +81,7 @@
 
 #### [Oracle contracts](CONTRACTS.md#Oracles)
 
-The most important part of the onchain stablecoin protocol is the oracles that allow the system to measure asset values on the fly. Unit Protocol stablecoin system currently uses the following types of onchain oracles:
+The most important part of the onchain stablecoin protocol is the oracles that allow the system to measure asset values on the fly. GCD Protocol stablecoin system currently uses the following types of onchain oracles:
 
 - Direct wrappers for existing [Chainlink feeds](https://data.chain.link/)
 - Custom wrappers for DeFi primitives (aka bearing assets) using Chainlink-based wrappers
@@ -89,4 +89,4 @@ The most important part of the onchain stablecoin protocol is the oracles that a
 - [Keep3rOracle-based](https://github.com/keep3r-network/keep3r.network/blob/master/contracts/jobs/UniswapV2Oracle.sol) time-weighted average price (TWAP) oracle implementation that uses a window of 1.5 - 2.5h for price calculation
 - Oracles for different LP tokens
 
-See the full current list of contracts here: [Oracle contracts](CONTRACTS.md#Oracles). Info about concrete oracle used for collateral is listed on collateral page on https://unit.xyz/
+See the full current list of contracts here: [Oracle contracts](CONTRACTS.md#Oracles).

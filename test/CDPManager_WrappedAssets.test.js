@@ -17,30 +17,30 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 	describe('Optimistic cases', function() {
 		it('Should spawn a position', async function() {
 			const mainAmount = ether('100');
-			const usdpAmount = ether('20');
+			const gcdAmount = ether('20');
 
-			const { logs } = await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+			const { logs } = await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 			expectEvent.inLogs(logs, 'Join', {
 				asset: this.wrappedAsset.address,
 				owner: deployer,
 				main: mainAmount,
-				usdp: usdpAmount,
+				gcd: gcdAmount,
 			});
 
 			const assetAmountInPosition = await this.vault.collaterals(this.wrappedAsset.address, deployer);
-			const usdpBalance = await this.usdp.balanceOf(deployer);
+			const gcdBalance = await this.gcd.balanceOf(deployer);
 
 			expect(assetAmountInPosition).to.be.bignumber.equal(mainAmount);
-			expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
+			expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
 		})
 
 		describe('Repay & withdraw', function() {
 			it('Should repay the debt of a position and withdraw collaterals', async function() {
 				const mainAmount = ether('100');
-				const usdpAmount = ether('20');
+				const gcdAmount = ether('20');
 
-				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+				await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 				const { logs } = await this.utils.repayAllAndWithdraw(this.wrappedAsset, deployer);
 
@@ -48,7 +48,7 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 					asset: this.wrappedAsset.address,
 					owner: deployer,
 					main: mainAmount,
-					usdp: usdpAmount,
+					gcd: gcdAmount,
 				});
 
 				const mainAmountInPosition = await this.vault.collaterals(this.wrappedAsset.address, deployer);
@@ -58,71 +58,71 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 
 			it('Should partially repay the debt of a position and withdraw the part of the collateral', async function() {
 				const mainAmount = ether('100');
-				const usdpAmount = ether('20');
+				const gcdAmount = ether('20');
 
-				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+				await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 				const mainToWithdraw = ether('50');
-				const usdpToWithdraw = ether('2.5');
+				const gcdToWithdraw = ether('2.5');
 
-				const { logs } = await this.utils.exit(this.wrappedAsset, mainToWithdraw, usdpToWithdraw);
+				const { logs } = await this.utils.exit(this.wrappedAsset, mainToWithdraw, gcdToWithdraw);
 
 				expectEvent.inLogs(logs, 'Exit', {
 					asset: this.wrappedAsset.address,
 					owner: deployer,
 					main: mainToWithdraw,
-					usdp: usdpToWithdraw,
+					gcd: gcdToWithdraw,
 				});
 
 				const mainAmountInPosition = await this.vault.collaterals(this.wrappedAsset.address, deployer);
-				const usdpInPosition = await this.vault.debts(this.wrappedAsset.address, deployer);
+				const gcdInPosition = await this.vault.debts(this.wrappedAsset.address, deployer);
 
 				expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.sub(mainToWithdraw));
-				expect(usdpInPosition).to.be.bignumber.equal(usdpAmount.sub(usdpToWithdraw));
+				expect(gcdInPosition).to.be.bignumber.equal(gcdAmount.sub(gcdToWithdraw));
 			})
 
 		})
 
-		it('Should deposit collaterals to position and mint USDP', async function() {
+		it('Should deposit collaterals to position and mint GCD', async function() {
 			let mainAmount = ether('100');
-			let usdpAmount = ether('20');
+			let gcdAmount = ether('20');
 
-			await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+			await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
-			const { logs } = await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+			const { logs } = await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 			expectEvent.inLogs(logs, 'Join', {
 				asset: this.wrappedAsset.address,
 				owner: deployer,
 				main: mainAmount,
-				usdp: usdpAmount,
+				gcd: gcdAmount,
 			});
 
 			const mainAmountInPosition = await this.vault.collaterals(this.wrappedAsset.address, deployer);
-			const usdpBalance = await this.usdp.balanceOf(deployer);
+			const gcdBalance = await this.gcd.balanceOf(deployer);
 
 			expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.mul(new BN(2)));
-			expect(usdpBalance).to.be.bignumber.equal(usdpAmount.mul(new BN(2)));
+			expect(gcdBalance).to.be.bignumber.equal(gcdAmount.mul(new BN(2)));
 		})
 
-		it('Should withdraw collateral from a position and repay (burn) USDP', async function() {
+		it('Should withdraw collateral from a position and repay (burn) GCD', async function() {
 			let mainAmount = ether('100');
-			let usdpAmount = ether('20');
+			let gcdAmount = ether('20');
 
-			await this.utils.join(this.wrappedAsset, mainAmount.mul(new BN(2)), usdpAmount.mul(new BN(2)));
+			await this.utils.join(this.wrappedAsset, mainAmount.mul(new BN(2)), gcdAmount.mul(new BN(2)));
 
-			const usdpSupplyBefore = await this.usdp.totalSupply();
+			const gcdSupplyBefore = await this.gcd.totalSupply();
 
-			await this.utils.exit(this.wrappedAsset, mainAmount, usdpAmount);
+			await this.utils.exit(this.wrappedAsset, mainAmount, gcdAmount);
 
-			const usdpSupplyAfter = await this.usdp.totalSupply();
+			const gcdSupplyAfter = await this.gcd.totalSupply();
 
 			const mainAmountInPosition = await this.vault.collaterals(this.wrappedAsset.address, deployer);
-			const usdpBalance = await this.usdp.balanceOf(deployer);
+			const gcdBalance = await this.gcd.balanceOf(deployer);
 
 			expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-			expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
-			expect(usdpSupplyAfter).to.be.bignumber.equal(usdpSupplyBefore.sub(usdpAmount));
+			expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
+			expect(gcdSupplyAfter).to.be.bignumber.equal(gcdSupplyBefore.sub(gcdAmount));
 		})
 	});
 
@@ -131,13 +131,13 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 
 			it('Reverts non valuable tx', async function() {
 				const mainAmount = ether('0');
-				const usdpAmount = ether('0');
+				const gcdAmount = ether('0');
 
 				await this.wrappedAsset.approve(this.vault.address, mainAmount);
 				const tx = this.utils.join(
 					this.wrappedAsset,
 					mainAmount, // main
-					usdpAmount,	// USDP
+					gcdAmount,	// GCD
 				);
 				await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 			})
@@ -145,25 +145,25 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 			describe('Reverts when collateralization is incorrect', function() {
 				it('Not enough main collateral', async function() {
 					let mainAmount = ether('0');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
 					await this.wrappedAsset.approve(this.vault.address, mainAmount);
 					const tx = this.utils.join(
 						this.wrappedAsset,
 						mainAmount, // main
-						usdpAmount,	// USDP
+						gcdAmount,	// GCD
 					);
 					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 				})
 
 				it('Reverts when main collateral is not approved', async function() {
 					const mainAmount = ether('100');
-					const usdpAmount = ether('20');
+					const gcdAmount = ether('20');
 
 					const tx = this.utils.join(
 						this.wrappedAsset,
 						mainAmount, // main
-						usdpAmount,	// USDP
+						gcdAmount,	// GCD
 						{
 							noApprove: true
 						},
@@ -176,9 +176,9 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 		describe('Exit', function() {
 			it('Reverts non valuable tx', async function() {
 				const mainAmount = ether('100');
-				const usdpAmount = ether('20');
+				const gcdAmount = ether('20');
 
-				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+				await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 				const tx = this.utils.exit(this.wrappedAsset, 0, 0, 0);
 				await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
@@ -186,9 +186,9 @@ contract('CDPManager with wrapped assets', function([deployer]) {
 
 			it('Reverts when position becomes undercollateralized', async function() {
 				const mainAmount = ether('100');
-				const usdpAmount = ether('20');
+				const gcdAmount = ether('20');
 
-				await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+				await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 				const tx = this.utils.exit(this.wrappedAsset, mainAmount, 0, 0);
 				await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");

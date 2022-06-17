@@ -89,7 +89,7 @@ contract AssetParametersViewer {
         // Devaluation period in blocks
         uint devaluationPeriod;
 
-        // USDP mint limit
+        // GCD mint limit
         uint tokenDebtLimit;
 
         // Oracle types enabled for this asset

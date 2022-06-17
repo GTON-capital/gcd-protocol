@@ -85,7 +85,7 @@ contract('WstEthOracle', function([
 		expect((priceSettedToCurvePool == priceGetted[0])).to.be.true;
 	});
 
-	it('Should quote wstETH to USDP', async function () {
+	it('Should quote wstETH to GCD', async function () {
 		console.log('quoted wstETH amount:', wstETHqty);
 		let qtyWETHforWstETH = parseInt((stETHgetted * priceFromFeed) / 10**18);
 		console.log('qtyStEthforWstETH:', stETHgetted.toString(10));

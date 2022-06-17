@@ -20,14 +20,14 @@ contract('LiquidationTriggerChainlinkMainAsset', function([
 
 	it('Should trigger liquidation of undercollateralized position', async function () {
 		const mainAmount = ether('60');
-		const usdpAmount = ether('70');
+		const gcdAmount = ether('70');
 
 		/*
 		 * Spawned position params:
 		 * collateral value = 60 * 2 = 120$
 		 * utilization percent = 70 / 120 = 58.3%
 		 */
-		await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+		await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 		const newPriceOfMainInUsd = 1.301e8
 		await this.mainUsd.setPrice(newPriceOfMainInUsd);
@@ -59,14 +59,14 @@ contract('LiquidationTriggerChainlinkMainAsset', function([
 
 	it('Should fail to trigger liquidation of collateralized position', async function () {
 		const mainAmount = ether('60');
-		const usdpAmount = ether('70');
+		const gcdAmount = ether('70');
 
 		/*
 		 * Spawned position params:
 		 * collateral value = 60 * 2 = 120$
 		 * utilization percent = 70 / 120 = 58.3%
 		 */
-		await this.utils.spawn(this.mainCollateral, mainAmount, usdpAmount);
+		await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
 
 		const tx = this.utils.triggerLiquidation(this.mainCollateral, positionOwner, liquidator);
 		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");

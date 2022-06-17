@@ -23,14 +23,14 @@ contract('LiquidationAuction', function([
 		await this.curvePool.setPool(ether('1.2'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
 
 		const collateralAmount = ether('1000');
-		const usdpAmount = ether('700');
+		const gcdAmount = ether('700');
 
-		await this.utils.join(this.wrappedAsset, collateralAmount, usdpAmount);
+		await this.utils.join(this.wrappedAsset, collateralAmount, gcdAmount);
 
 		// top up balance of an account performing a liquidation
 		await this.wrappedAsset.transfer(liquidator, collateralAmount.mul(new BN('2')));
 
-		const initialLiquidatorUsdpBalance = usdpAmount.mul(new BN('2'));
+		const initialLiquidatorUsdpBalance = gcdAmount.mul(new BN('2'));
 		await this.utils.join(this.wrappedAsset, collateralAmount.mul(new BN('2')), initialLiquidatorUsdpBalance, { from: liquidator });
 
 		await this.curvePool.setPool(ether('1'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
@@ -43,10 +43,10 @@ contract('LiquidationAuction', function([
 		const startingCollateralPrice = await this.vault.liquidationPrice(this.wrappedAsset.address, positionOwner);
 
 		const liquidationFeePercent = await this.vault.liquidationFee(this.wrappedAsset.address, positionOwner);
-		const penalty = usdpAmount.mul(liquidationFeePercent).div(new BN(100));
+		const penalty = gcdAmount.mul(liquidationFeePercent).div(new BN(100));
 
-		// approve USDP
-		await this.usdp.approve(this.vault.address, penalty, { from: liquidator });
+		// approve GCD
+		await this.gcd.approve(this.vault.address, penalty, { from: liquidator });
 
 		const buyoutBlock = await nextBlockNumber();
 
@@ -54,7 +54,7 @@ contract('LiquidationAuction', function([
 
 		const devaluationPeriod = await this.vaultManagerParameters.devaluationPeriod(this.wrappedAsset.address);
 		const blocksPast = buyoutBlock.sub(liquidationTriggerBlock);
-		const debtWithPenalty = usdpAmount.add(penalty);
+		const debtWithPenalty = gcdAmount.add(penalty);
 
 		let valuationPeriod = new BN('0');
 		let collateralPrice = new BN('0');
@@ -87,15 +87,15 @@ contract('LiquidationAuction', function([
 		});
 
 		const mainAmountInPositionAfterLiquidation = await this.vault.collaterals(this.wrappedAsset.address, positionOwner);
-		const usdpDebt = await this.vault.getTotalDebt(this.wrappedAsset.address, positionOwner);
+		const gcdDebt = await this.vault.getTotalDebt(this.wrappedAsset.address, positionOwner);
 
-		const usdpLiquidatorBalance = await this.usdp.balanceOf(liquidator);
+		const gcdLiquidatorBalance = await this.gcd.balanceOf(liquidator);
 		const collateralLiquidatorBalance = await this.wrappedAsset.balanceOf(liquidator);
 		const collateralOwnerBalanceAfter = await this.wrappedAsset.balanceOf(positionOwner);
 
 		expect(mainAmountInPositionAfterLiquidation).to.be.bignumber.equal(new BN('0'));
-		expect(usdpDebt).to.be.bignumber.equal(new BN('0'));
-		expect(usdpLiquidatorBalance).to.be.bignumber.equal(initialLiquidatorUsdpBalance.sub(repayment));
+		expect(gcdDebt).to.be.bignumber.equal(new BN('0'));
+		expect(gcdLiquidatorBalance).to.be.bignumber.equal(initialLiquidatorUsdpBalance.sub(repayment));
 		expect(collateralLiquidatorBalance).to.be.bignumber.equal(collateralToBuyer);
 		expect(collateralOwnerBalanceAfter.sub(collateralOwnerBalanceBefore)).to.be.bignumber.equal(collateralToOwner);
 	})
@@ -105,14 +105,14 @@ contract('LiquidationAuction', function([
 		await this.curvePool.setPool(ether('1.2'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
 
 		const collateralAmount = ether('1000');
-		const usdpAmount = ether('700');
+		const gcdAmount = ether('700');
 
-		await this.utils.join(this.wrappedAsset, collateralAmount, usdpAmount);
+		await this.utils.join(this.wrappedAsset, collateralAmount, gcdAmount);
 
 		// top up balance of an account performing a liquidation
 		await this.wrappedAsset.transfer(liquidator, collateralAmount.mul(new BN('2')));
 
-		const initialLiquidatorUsdpBalance = usdpAmount.mul(new BN('2'));
+		const initialLiquidatorUsdpBalance = gcdAmount.mul(new BN('2'));
 		await this.utils.join(this.wrappedAsset, collateralAmount.mul(new BN('2')), initialLiquidatorUsdpBalance, { from: liquidator });
 
 		await this.curvePool.setPool(ether('0.5'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
@@ -122,10 +122,10 @@ contract('LiquidationAuction', function([
 		await this.utils.triggerLiquidation(this.wrappedAsset, positionOwner, liquidator);
 
 		const liquidationFeePercent = await this.vault.liquidationFee(this.wrappedAsset.address, positionOwner);
-		const penalty = usdpAmount.mul(liquidationFeePercent).div(new BN(100));
+		const penalty = gcdAmount.mul(liquidationFeePercent).div(new BN(100));
 
-		// approve USDP
-		await this.usdp.approve(this.vault.address, penalty, { from: liquidator });
+		// approve GCD
+		await this.gcd.approve(this.vault.address, penalty, { from: liquidator });
 
 		await this.utils.buyout(this.wrappedAsset, positionOwner, liquidator);
 

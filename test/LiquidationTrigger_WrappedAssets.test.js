@@ -23,13 +23,13 @@ contract('LiquidationTriggerSimple', function([
 	it('Should trigger liquidation of undercollateralized position', async function () {
 		await this.curvePool.setPool(ether('1.2'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
 		const mainAmount = ether('1000');
-		const usdpAmount = ether('700');
+		const gcdAmount = ether('700');
 
 		/*
 		 * Spawned position params:
 		 * utilization percent = 700 / 1200 = ~58.33%
 		 */
-		await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+		await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 		await this.curvePool.setPool(ether('1'), [this.curveLockedAsset1.address, this.curveLockedAsset2.address, this.curveLockedAsset3.address])
 
@@ -61,14 +61,14 @@ contract('LiquidationTriggerSimple', function([
 
 	it('Should fail to trigger liquidation of collateralized position', async function () {
 		const mainAmount = ether('50');
-		const usdpAmount = ether('25');
+		const gcdAmount = ether('25');
 
 		/*
 		 * Spawned position params:
 		 * collateral value = 50$
 		 * utilization percent = 50%
 		 */
-		await this.utils.join(this.wrappedAsset, mainAmount, usdpAmount);
+		await this.utils.join(this.wrappedAsset, mainAmount, gcdAmount);
 
 		const tx = this.utils.triggerLiquidation(this.wrappedAsset, positionOwner, liquidator);
 		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");

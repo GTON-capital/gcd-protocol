@@ -35,12 +35,12 @@ contract CDPManager01 is ReentrancyGuard {
     /**
      * @dev Trigger when joins are happened
     **/
-    event Join(address indexed asset, address indexed owner, uint main, uint usdp);
+    event Join(address indexed asset, address indexed owner, uint main, uint gcd);
 
     /**
      * @dev Trigger when exits are happened
     **/
-    event Exit(address indexed asset, address indexed owner, uint main, uint usdp);
+    event Exit(address indexed asset, address indexed owner, uint main, uint gcd);
 
     /**
      * @dev Trigger when liquidations are initiated
@@ -79,17 +79,17 @@ contract CDPManager01 is ReentrancyGuard {
     /**
       * @notice Depositing tokens must be pre-approved to Vault address
       * @notice position actually considered as spawned only when debt > 0
-      * @dev Deposits collateral and/or borrows USDP
+      * @dev Deposits collateral and/or borrows GCD
       * @param asset The address of the collateral
       * @param assetAmount The amount of the collateral to deposit
-      * @param usdpAmount The amount of USDP token to borrow
+      * @param gcdAmount The amount of GCD token to borrow
       **/
-    function join(address asset, uint assetAmount, uint usdpAmount) public nonReentrant checkpoint(asset, msg.sender) {
-        require(usdpAmount != 0 || assetAmount != 0, "GCD Protocol: USELESS_TX");
+    function join(address asset, uint assetAmount, uint gcdAmount) public nonReentrant checkpoint(asset, msg.sender) {
+        require(gcdAmount != 0 || assetAmount != 0, "GCD Protocol: USELESS_TX");
 
         require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 
-        if (usdpAmount == 0) {
+        if (gcdAmount == 0) {
 
             vault.depositMain(asset, msg.sender, assetAmount);
 
@@ -108,8 +108,8 @@ contract CDPManager01 is ReentrancyGuard {
                 vault.depositMain(asset, msg.sender, assetAmount);
             }
 
-            // mint USDP to owner
-            vault.borrow(asset, msg.sender, usdpAmount);
+            // mint GCD to owner
+            vault.borrow(asset, msg.sender, gcdAmount);
 
             // check collateralization
             _ensurePositionCollateralization(asset, msg.sender);
@@ -117,47 +117,47 @@ contract CDPManager01 is ReentrancyGuard {
         }
 
         // fire an event
-        emit Join(asset, msg.sender, assetAmount, usdpAmount);
+        emit Join(asset, msg.sender, assetAmount, gcdAmount);
     }
 
     /**
-      * @dev Deposits ETH and/or borrows USDP
-      * @param usdpAmount The amount of USDP token to borrow
+      * @dev Deposits ETH and/or borrows GCD
+      * @param gcdAmount The amount of GCD token to borrow
       **/
-    function join_Eth(uint usdpAmount) external payable {
+    function join_Eth(uint gcdAmount) external payable {
 
         if (msg.value != 0) {
             IWETH(WETH).deposit{value: msg.value}();
             require(IWETH(WETH).transfer(msg.sender, msg.value), "GCD Protocol: WETH_TRANSFER_FAILED");
         }
 
-        join(WETH, msg.value, usdpAmount);
+        join(WETH, msg.value, gcdAmount);
     }
 
     /**
-      * @notice Tx sender must have a sufficient USDP balance to pay the debt
+      * @notice Tx sender must have a sufficient GCD balance to pay the debt
       * @dev Withdraws collateral and repays specified amount of debt
       * @param asset The address of the collateral
       * @param assetAmount The amount of the collateral to withdraw
-      * @param usdpAmount The amount of USDP to repay
+      * @param gcdAmount The amount of GCD to repay
       **/
-    function exit(address asset, uint assetAmount, uint usdpAmount) public nonReentrant checkpoint(asset, msg.sender) returns (uint) {
+    function exit(address asset, uint assetAmount, uint gcdAmount) public nonReentrant checkpoint(asset, msg.sender) returns (uint) {
 
         // check usefulness of tx
-        require(assetAmount != 0 || usdpAmount != 0, "GCD Protocol: USELESS_TX");
+        require(assetAmount != 0 || gcdAmount != 0, "GCD Protocol: USELESS_TX");
 
         uint debt = vault.debts(asset, msg.sender);
 
         // catch full repayment
-        if (usdpAmount > debt) { usdpAmount = debt; }
+        if (gcdAmount > debt) { gcdAmount = debt; }
 
         if (assetAmount == 0) {
-            _repay(asset, msg.sender, usdpAmount);
+            _repay(asset, msg.sender, gcdAmount);
         } else {
-            if (debt == usdpAmount) {
+            if (debt == gcdAmount) {
                 vault.withdrawMain(asset, msg.sender, assetAmount);
-                if (usdpAmount != 0) {
-                    _repay(asset, msg.sender, usdpAmount);
+                if (gcdAmount != 0) {
+                    _repay(asset, msg.sender, gcdAmount);
                 }
             } else {
                 _ensureOracle(asset);
@@ -165,8 +165,8 @@ contract CDPManager01 is ReentrancyGuard {
                 // withdraw collateral to the owner address
                 vault.withdrawMain(asset, msg.sender, assetAmount);
 
-                if (usdpAmount != 0) {
-                    _repay(asset, msg.sender, usdpAmount);
+                if (gcdAmount != 0) {
+                    _repay(asset, msg.sender, gcdAmount);
                 }
 
                 vault.update(asset, msg.sender);
@@ -176,9 +176,9 @@ contract CDPManager01 is ReentrancyGuard {
         }
 
         // fire an event
-        emit Exit(asset, msg.sender, assetAmount, usdpAmount);
+        emit Exit(asset, msg.sender, assetAmount, gcdAmount);
 
-        return usdpAmount;
+        return gcdAmount;
     }
 
     /**
@@ -190,23 +190,23 @@ contract CDPManager01 is ReentrancyGuard {
       **/
     function exit_targetRepayment(address asset, uint assetAmount, uint repayment) external returns (uint) {
 
-        uint usdpAmount = _calcPrincipal(asset, msg.sender, repayment);
+        uint gcdAmount = _calcPrincipal(asset, msg.sender, repayment);
 
-        return exit(asset, assetAmount, usdpAmount);
+        return exit(asset, assetAmount, gcdAmount);
     }
 
     /**
       * @notice Withdraws WETH and converts to ETH
       * @param ethAmount ETH amount to withdraw
-      * @param usdpAmount The amount of USDP token to repay
+      * @param gcdAmount The amount of GCD token to repay
       **/
-    function exit_Eth(uint ethAmount, uint usdpAmount) public returns (uint) {
-        usdpAmount = exit(WETH, ethAmount, usdpAmount);
+    function exit_Eth(uint ethAmount, uint gcdAmount) public returns (uint) {
+        gcdAmount = exit(WETH, ethAmount, gcdAmount);
         require(IWETH(WETH).transferFrom(msg.sender, address(this), ethAmount), "GCD Protocol: WETH_TRANSFER_FROM_FAILED");
         IWETH(WETH).withdraw(ethAmount);
         (bool success, ) = msg.sender.call{value:ethAmount}("");
         require(success, "GCD Protocol: ETH_TRANSFER_FAILED");
-        return usdpAmount;
+        return gcdAmount;
     }
 
     /**
@@ -216,17 +216,17 @@ contract CDPManager01 is ReentrancyGuard {
       * @param repayment The target repayment amount
       **/
     function exit_Eth_targetRepayment(uint ethAmount, uint repayment) external returns (uint) {
-        uint usdpAmount = _calcPrincipal(WETH, msg.sender, repayment);
-        return exit_Eth(ethAmount, usdpAmount);
+        uint gcdAmount = _calcPrincipal(WETH, msg.sender, repayment);
+        return exit_Eth(ethAmount, gcdAmount);
     }
 
     // decreases debt
-    function _repay(address asset, address owner, uint usdpAmount) internal {
-        uint fee = vault.calculateFee(asset, owner, usdpAmount);
-        vault.chargeFee(vault.usdp(), owner, fee);
+    function _repay(address asset, address owner, uint gcdAmount) internal {
+        uint fee = vault.calculateFee(asset, owner, gcdAmount);
+        vault.chargeFee(vault.gcd(), owner, fee);
 
-        // burn USDP from the owner's balance
-        uint debtAfter = vault.repay(asset, owner, usdpAmount);
+        // burn GCD from the owner's balance
+        uint debtAfter = vault.repay(asset, owner, gcdAmount);
         if (debtAfter == 0) {
             // clear unused storage
             vault.destroy(asset, owner);

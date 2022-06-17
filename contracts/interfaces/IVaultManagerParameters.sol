@@ -21,7 +21,7 @@ interface IVaultManagerParameters {
         uint256 liquidationRatioValue,
         uint256 liquidationDiscountValue,
         uint256 devaluationPeriodValue,
-        uint256 usdpLimit,
+        uint256 gcdLimit,
         uint256[] calldata oracles,
         uint256 minColP,
         uint256 maxColP

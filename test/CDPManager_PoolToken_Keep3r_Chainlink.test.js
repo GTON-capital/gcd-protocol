@@ -25,22 +25,22 @@ const utils = require('./helpers/utils');
 				it('Should spawn position', async function() {
 
 					const mainAmount = new BN('100');
-					const usdpAmount = new BN('20');
+					const gcdAmount = new BN('20');
 
-					const { logs } = await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+					const { logs } = await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 					expectEvent.inLogs(logs, 'Join', {
 						asset: this.poolToken.address,
 						owner: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
-					const usdpBalance = await this.usdp.balanceOf(deployer);
+					const gcdBalance = await this.gcd.balanceOf(deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-					expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
+					expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
 					expect(await this.cdpRegistry.isListed(this.poolToken.address, deployer)).to.equal(true);
 				})
 			})
@@ -49,9 +49,9 @@ const utils = require('./helpers/utils');
 				it('Should repay the debt of a position and withdraw collaterals', async function() {
 
 					const mainAmount = new BN('100');
-					const usdpAmount = new BN('20');
+					const gcdAmount = new BN('20');
 
-					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 					const { logs } = await this.utils.repayAllAndWithdraw(this.poolToken, deployer);
 
@@ -59,7 +59,7 @@ const utils = require('./helpers/utils');
 						asset: this.poolToken.address,
 						owner: deployer,
 						main: mainAmount,
-						usdp: usdpAmount,
+						gcd: gcdAmount,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
@@ -70,70 +70,70 @@ const utils = require('./helpers/utils');
 
 				it('Should partially repay the debt of a position and withdraw collaterals partially', async function() {
 					const mainAmount = new BN('100');
-					const usdpAmount = new BN('20');
+					const gcdAmount = new BN('20');
 
-					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 					const mainToWithdraw = new BN('50');
-					const usdpToRepay = new BN('10');
+					const gcdToRepay = new BN('10');
 
-					const { logs } = await this.utils.withdrawAndRepay(this.poolToken, mainToWithdraw, usdpToRepay);
+					const { logs } = await this.utils.withdrawAndRepay(this.poolToken, mainToWithdraw, gcdToRepay);
 
 					expectEvent.inLogs(logs, 'Exit', {
 						asset: this.poolToken.address,
 						owner: deployer,
 						main: mainToWithdraw,
-						usdp: usdpToRepay,
+						gcd: gcdToRepay,
 					});
 
 					const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
-					const usdpInPosition = await this.vault.debts(this.poolToken.address, deployer);
+					const gcdInPosition = await this.vault.debts(this.poolToken.address, deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.sub(mainToWithdraw));
-					expect(usdpInPosition).to.be.bignumber.equal(usdpAmount.sub(usdpToRepay));
+					expect(gcdInPosition).to.be.bignumber.equal(gcdAmount.sub(gcdToRepay));
 				})
 			})
 
-			it('Should deposit collaterals to position and mint USDP', async function() {
+			it('Should deposit collaterals to position and mint GCD', async function() {
 				let mainAmount = new BN('100');
-				let usdpAmount = new BN('20');
+				let gcdAmount = new BN('20');
 
-				await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+				await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
-				const { logs } = await this.utils.join(this.poolToken, mainAmount, usdpAmount);
+				const { logs } = await this.utils.join(this.poolToken, mainAmount, gcdAmount);
 
 				expectEvent.inLogs(logs, 'Join', {
 					asset: this.poolToken.address,
 					owner: deployer,
 					main: mainAmount,
-					usdp: usdpAmount,
+					gcd: gcdAmount,
 				});
 
 				const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
-				const usdpBalance = await this.usdp.balanceOf(deployer);
+				const gcdBalance = await this.gcd.balanceOf(deployer);
 
 				expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount.mul(new BN(2)));
-				expect(usdpBalance).to.be.bignumber.equal(usdpAmount.mul(new BN(2)));
+				expect(gcdBalance).to.be.bignumber.equal(gcdAmount.mul(new BN(2)));
 			})
 
-			it('Should withdraw collaterals from position and repay (burn) USDP', async function() {
+			it('Should withdraw collaterals from position and repay (burn) GCD', async function() {
 				let mainAmount = new BN('100');
-				let usdpAmount = new BN('20');
+				let gcdAmount = new BN('20');
 
-				await this.utils.spawn(this.poolToken, mainAmount.mul(new BN(2)), usdpAmount.mul(new BN(2)));
+				await this.utils.spawn(this.poolToken, mainAmount.mul(new BN(2)), gcdAmount.mul(new BN(2)));
 
-				const usdpSupplyBefore = await this.usdp.totalSupply();
+				const gcdSupplyBefore = await this.gcd.totalSupply();
 
-				await this.utils.exit(this.poolToken, mainAmount, usdpAmount);
+				await this.utils.exit(this.poolToken, mainAmount, gcdAmount);
 
-				const usdpSupplyAfter = await this.usdp.totalSupply();
+				const gcdSupplyAfter = await this.gcd.totalSupply();
 
 				const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
-				const usdpBalance = await this.usdp.balanceOf(deployer);
+				const gcdBalance = await this.gcd.balanceOf(deployer);
 
 				expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
-				expect(usdpBalance).to.be.bignumber.equal(usdpAmount);
-				expect(usdpSupplyAfter).to.be.bignumber.equal(usdpSupplyBefore.sub(usdpAmount));
+				expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
+				expect(gcdSupplyAfter).to.be.bignumber.equal(gcdSupplyBefore.sub(gcdAmount));
 			})
 		});
 
@@ -141,12 +141,12 @@ const utils = require('./helpers/utils');
 			describe('Spawn', function() {
 				it('Reverts non valuable tx', async function() {
 					const mainAmount = new BN('0');
-					const usdpAmount = new BN('0');
+					const gcdAmount = new BN('0');
 
 					const tx = this.utils.spawn(
 						this.poolToken,
 						mainAmount, // main
-						usdpAmount,	// USDP
+						gcdAmount,	// GCD
 					);
 					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
 				})
@@ -154,24 +154,24 @@ const utils = require('./helpers/utils');
 				describe('Reverts when collateralization is incorrect', function() {
 					it('Not enough main collateral', async function() {
 						let mainAmount = new BN('0');
-						const usdpAmount = new BN('20');
+						const gcdAmount = new BN('20');
 
 						const tx = this.utils.spawn(
 							this.poolToken,
 							mainAmount, // main
-							usdpAmount,	// USDP
+							gcdAmount,	// GCD
 						);
 						await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 					})
 
 					it('Reverts when main collateral is not approved', async function() {
 						const mainAmount = new BN('100');
-						const usdpAmount = new BN('20');
+						const gcdAmount = new BN('20');
 
 						const tx = this.utils.spawn(
 							this.poolToken,
 							mainAmount, // main
-							usdpAmount,	// USDP
+							gcdAmount,	// GCD
 							{ noApprove: true }
 						);
 						await this.utils.expectRevert(tx, "TRANSFER_FROM_FAILED");
@@ -182,9 +182,9 @@ const utils = require('./helpers/utils');
 			describe('Exit', function() {
 				it('Reverts non valuable tx', async function() {
 					const mainAmount = new BN('100');
-					const usdpAmount = new BN('20');
+					const gcdAmount = new BN('20');
 
-					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 					const tx = this.utils.exit(this.poolToken, 0, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
@@ -192,9 +192,9 @@ const utils = require('./helpers/utils');
 
 				it('Reverts when position state after exit becomes undercollateralized', async function() {
 					const mainAmount = new BN('100');
-					const usdpAmount = new BN('20');
+					const gcdAmount = new BN('20');
 
-					await this.utils.spawn(this.poolToken, mainAmount, usdpAmount);
+					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 					const tx = this.utils.exit(this.poolToken, mainAmount, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");

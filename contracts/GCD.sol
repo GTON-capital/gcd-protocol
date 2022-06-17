@@ -10,7 +10,7 @@ import "./helpers/SafeMath.sol";
 
 
 /**
- * @title USDP token implementation
+ * @title GCD token implementation
  * @dev ERC20 token
  **/
 contract GCD is Auth {
@@ -53,7 +53,7 @@ contract GCD is Auth {
     constructor(address _parameters) Auth(_parameters) {}
 
     /**
-      * @notice Only Vault can mint USDP
+      * @notice Only Vault can mint GCD
       * @dev Mints 'amount' of tokens to address 'to', and MUST fire the
       * Transfer event
       * @param to The address of the recipient

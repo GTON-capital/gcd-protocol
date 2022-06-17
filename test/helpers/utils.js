@@ -2,7 +2,7 @@ const Vault = artifacts.require('Vault');
 const VaultParameters = artifacts.require('VaultParameters');
 const FoundationMock = artifacts.require('FoundationMock');
 const VaultManagerParameters = artifacts.require('VaultManagerParameters');
-const USDP = artifacts.require('USDP');
+const GCD = artifacts.require('GCD');
 const WETH = artifacts.require('WETH');
 const DummyToken = artifacts.require('DummyToken');
 const CyWETH = artifacts.require('CyWETH');
@@ -107,25 +107,25 @@ module.exports = (context, mode) => {
 
 	const repayAllAndWithdraw = async (main, user) => {
 		const totalDebt = await context.vault.getTotalDebt(main.address, user);
-		await context.usdp.approve(context.vault.address, totalDebt);
+		await context.gcd.approve(context.vault.address, totalDebt);
 		const mainAmount = await context.vault.collaterals(main.address, user);
 		return context.vaultManager.exit(main.address, mainAmount, MAX_UINT);
 	};
 
 	const repayAllAndWithdrawEth = async (user) => {
 		const totalDebt = await context.vault.getTotalDebt(context.weth.address, user);
-		await context.usdp.approve(context.vault.address, totalDebt);
+		await context.gcd.approve(context.vault.address, totalDebt);
 		const mainAmount = await context.vault.collaterals(context.weth.address, user);
 		await context.weth.approve(context.vaultManager.address, mainAmount);
 		return context.vaultManager.exit_Eth(mainAmount, MAX_UINT);
 	};
 
-	const repay = async (main, user, usdpAmount) => {
+	const repay = async (main, user, gcdAmount) => {
 		const totalDebt = await context.vault.getTotalDebt(main.address, user);
-		await context.usdp.approve(context.vault.address, totalDebt);
+		await context.gcd.approve(context.vault.address, totalDebt);
 		return context.vaultManagerStandard.repay(
 			main.address,
-			usdpAmount,
+			gcdAmount,
 		);
 	}
 
@@ -165,11 +165,11 @@ module.exports = (context, mode) => {
 		}
 
 		const parametersAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 1);
-		context.usdp = await USDP.new(parametersAddr);
+		context.gcd = await GCD.new(parametersAddr);
 
 		const vaultAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 1);
 		context.vaultParameters = await VaultParameters.new(vaultAddr, context.foundation.address);
-		context.vault = await Vault.new(context.vaultParameters.address, '0x0000000000000000000000000000000000000000', context.usdp.address, context.weth.address);
+		context.vault = await Vault.new(context.vaultParameters.address, '0x0000000000000000000000000000000000000000', context.gcd.address, context.weth.address);
 
 		let minColPercent, maxColPercent
 		let mainAssetOracleType, poolTokenOracleType

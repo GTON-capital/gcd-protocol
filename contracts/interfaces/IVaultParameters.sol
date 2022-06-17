@@ -11,7 +11,7 @@ interface IVaultParameters {
     function isManager ( address ) external view returns ( bool );
     function isOracleTypeEnabled ( uint256, address ) external view returns ( bool );
     function liquidationFee ( address ) external view returns ( uint256 );
-    function setCollateral ( address asset, uint256 stabilityFeeValue, uint256 liquidationFeeValue, uint256 usdpLimit, uint256[] calldata oracles ) external;
+    function setCollateral ( address asset, uint256 stabilityFeeValue, uint256 liquidationFeeValue, uint256 gcdLimit, uint256[] calldata oracles ) external;
     function setFoundation ( address newFoundation ) external;
     function setLiquidationFee ( address asset, uint256 newValue ) external;
     function setManager ( address who, bool permit ) external;

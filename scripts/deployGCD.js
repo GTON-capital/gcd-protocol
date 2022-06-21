@@ -27,6 +27,10 @@ const wethRopsten = "0xc778417e063141139fce010982780140aa0cd5ab"
 const wethEthereum = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 const weth = wethRopsten
 
+const usdcAddressRopsten = "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8" // gtonUSDC
+const usdcAddressEthereum = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+const usdcAddress = usdcAddressRopsten
+
 const gtonAddressRopsten = "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6"
 const gtonAddressEthereum = "0x01e0e2e61f554ecaaec0cc933e739ad90f24a86d"
 const gtonAddress = gtonAddressRopsten
@@ -48,7 +52,7 @@ const cdpManager01Ethereum = ""
 const cdpManager01 = cdpManager01Ropsten
 
 async function main() {
-    await borrowGCDForEth()
+    await setChainkinkedOracleUSDC()
 }
 
 async function deployOracleRegistry() {
@@ -204,7 +208,7 @@ async function setCDPManagerVaultAccess() {
     console.log("CDPManager01 as vault access entity tx: " + tx.hash)
 }
 
-async function addChainkinkedOracle() {
+async function addChainkinkedOracleToRegistry() {
     const [deployer] = await ethers.getSigners()
 
     console.log("Working with the account:", deployer.address)
@@ -228,6 +232,20 @@ async function setChainkinkedOracleWeth() {
     const contract = await Factory.attach(oracleRegistry)
 
     let tx = await contract.setOracleTypeForAsset(weth, chainkinkedOracleIndex)
+    tx.wait()
+    console.log("Set oracle type for asset tx: " + tx.hash)
+}
+
+async function setChainkinkedOracleUSDC() {
+    const [deployer] = await ethers.getSigners()
+
+    console.log("Working with the account:", deployer.address)
+    console.log("Account balance:", (await deployer.getBalance()).toString())
+
+    const Factory = await ethers.getContractFactory("OracleRegistry")
+    const contract = await Factory.attach(oracleRegistry)
+
+    let tx = await contract.setOracleTypeForAsset(usdcAddress, chainkinkedOracleIndex)
     tx.wait()
     console.log("Set oracle type for asset tx: " + tx.hash)
 }

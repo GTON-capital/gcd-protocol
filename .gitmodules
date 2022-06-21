@@ -1,0 +1,3 @@
+[submodule "contracts/gcd-oracles"]
+	path = contracts/gcd-oracles
+	url = https://github.com/GTON-capital/gcd-oracles

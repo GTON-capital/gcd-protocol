@@ -2,6 +2,15 @@
 
 [GCD Protocol](https://gton.capital/) is a decentralized protocol that allows you to mint stablecoin [GCD](contracts/GCD.sol) using a variety of tokens as collateral. Based on [Unit Protocol](https://docs.unit.xyz/).
 
+# Development
+
+Contains git submodule [Oracles](https://github.com/GTON-capital/gcd-oracles). To initialize:
+
+```shell
+git submodule init
+git submodule update
+```
+
 #### [Contract addresses](CONTRACTS.md)
 
 ### Ecosystem

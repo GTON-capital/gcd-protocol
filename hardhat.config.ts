@@ -34,15 +34,21 @@ module.exports = {
       gasPrice: 26 * 1e9,
       chainId: 1,
     },
-    rinkeby: {
-      url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+    gton: {
+      url: "https://testnet.gton.network",
       accounts: [PRIVATE_KEY],
+      gasPrice: 40 * 1e9,
+      gasMultiplier: 1,
     },
     ropsten: {
       url: "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       accounts: [PRIVATE_KEY],
       gasPrice: 12 * 1e9,
       gasMultiplier: 1,
+    },
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      accounts: [PRIVATE_KEY],
     },
     ftm: {
       // url: "https://rpc.ankr.com/fantom",
@@ -94,7 +100,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.6.8",
+        version: "0.8.15",
         settings: {
           optimizer: {
             enabled: true,
@@ -112,14 +118,32 @@ module.exports = {
         }
       },
       {
-        version: "0.8.14",
+        version: "0.6.12",
         settings: {
           optimizer: {
             enabled: true,
             runs: 200
           }
         }
-      }
+      },
+      {
+        version: "0.6.8",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
+      {
+        version: "0.4.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
     ],
   },
   spdxLicenseIdentifier: {
@@ -133,7 +157,9 @@ module.exports = {
   watcher: {
     compile: {
       tasks: ["compile"],
-      files: ["./contracts"],
+      files: [
+        "./contracts"
+      ],
       verbose: true,
     },
   },

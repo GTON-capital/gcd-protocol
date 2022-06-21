@@ -5,7 +5,9 @@
   "author": "@bcngod",
   "license": "Business Source License 1.1",
   "scripts": {
-    "deploy:ropsten": "hardhat run --network ropsten ./scripts/deploy.js"
+    "deploy:gcd:ropsten": "hardhat run --network ropsten ./scripts/deployGCD.js",
+    "deploy:oracles:ropsten": "hardhat run --network ropsten ./scripts/deployOracles.js",
+    "deploy:oracles:gton": "hardhat run --network gton ./scripts/deployOracles.js"
   },
   "dependencies": {
     "@keydonix/uniswap-oracle-contracts": "^1.0.2",

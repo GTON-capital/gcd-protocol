@@ -9,6 +9,7 @@ const utils = require('./helpers/utils');
 const increaseTime = require('./helpers/timeTravel');
 const time = require('./helpers/time');
 
+/*
 [
 	'keydonixMainAsset',
 ].forEach(oracleMode =>
@@ -332,3 +333,4 @@ const time = require('./helpers/time');
 		})
 	})
 );
+*/

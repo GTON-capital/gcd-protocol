@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { nextBlockNumber } = require('./helpers/time');
 const utils = require('./helpers/utils');
 
+/*
 contract('LiquidationTriggerKeydonixPoolToken', function([
 	positionOwner,
 	liquidator,
@@ -22,11 +23,11 @@ contract('LiquidationTriggerKeydonixPoolToken', function([
 
 			const lpSupply = await this.poolToken.totalSupply();
 
-			/*
-			 * Spawned position params:
-			 * collateral value = 44.72 * 2 + 5 = 139.16$
-			 * utilization percent = 78 / 139.16 = ~56%
-			 */
+			//  *
+			//  * Spawned position params:
+			//  * collateral value = 44.72 * 2 + 5 = 139.16$
+			//  * utilization percent = 78 / 139.16 = ~56%
+			//  *
 			await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
 			// fill liquidator gcd balance
@@ -34,9 +35,9 @@ contract('LiquidationTriggerKeydonixPoolToken', function([
 			// approve gcd from liquidator to Vault
 			await this.gcd.approve(this.vault.address, gcdAmount);
 
-			/*
-			 * Dump the price of underlying token for ~20%
-			 */
+			//  *
+			//  * Dump the price of underlying token for ~20%
+			//  *
 			const mainSwapAmount = new BN(3).mul(new BN(10).pow(new BN(13)))
 			await this.mainCollateral.approve(this.uniswapRouter.address, mainSwapAmount);
 
@@ -44,9 +45,9 @@ contract('LiquidationTriggerKeydonixPoolToken', function([
 			const wethReserve = new BN(1e12).sub(wethReceive);
 			const mainUsdValueAfterSwap = wethReserve.mul(new BN(250)).mul(new BN(2)).mul(mainAmount).div(lpSupply);
 
-			/*
-			 * collateral value after dump = ~112.29 + 5 = ~117.29$
-			 */
+			//  *
+			//  * collateral value after dump = ~112.29 + 5 = ~117.29$
+			//  *
 			await this.uniswapRouter.swapExactTokensForTokens(
 				mainSwapAmount,
 				'1',
@@ -55,9 +56,9 @@ contract('LiquidationTriggerKeydonixPoolToken', function([
 				'9999999999999999',
 			);
 
-			/*
-			 * utilization percent after swap = 78 / 113.128 = ~68.95%
-			 */
+			//  *
+			//  * utilization percent after swap = 78 / 113.128 = ~68.95%
+			//  *
 
 			const totalCollateralUsdValue = mainUsdValueAfterSwap;
 			const initialDiscount = await this.vaultManagerParameters.liquidationDiscount(this.poolToken.address);
@@ -79,3 +80,4 @@ contract('LiquidationTriggerKeydonixPoolToken', function([
 		})
 	});
 });
+*/

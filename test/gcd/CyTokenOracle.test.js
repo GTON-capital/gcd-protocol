@@ -4,6 +4,7 @@ const utils = require('./helpers/utils')
 
 const Q112 = new BN('2').pow(new BN('112'))
 
+/*
 contract('CyTokenOracle', function([account1]) {
 	// deploy & initial settings
 	beforeEach(async function() {
@@ -38,3 +39,4 @@ contract('CyTokenOracle', function([account1]) {
 		expect(usd_q112).to.be.bignumber.equal(expectedUsdValue_q112);
 	});
 });
+*/

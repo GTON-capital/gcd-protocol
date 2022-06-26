@@ -1,7 +1,7 @@
 const {
 		constants : { ZERO_ADDRESS },
 		ether
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const utils  = require('./helpers/utils');
 const BN = web3.utils.BN;
 const { expect } = require('chai');

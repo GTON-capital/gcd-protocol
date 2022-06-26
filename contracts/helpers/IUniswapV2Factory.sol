@@ -5,7 +5,7 @@
 */
 pragma solidity 0.7.6;
 
-interface IUniswapV2Factory {
+interface MockIUniswapV2Factory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     function getPair(address tokenA, address tokenB) external view returns (address pair);

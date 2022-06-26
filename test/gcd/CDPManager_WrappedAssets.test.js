@@ -1,7 +1,7 @@
 const {
 	expectEvent,
 	ether
-} = require('openzeppelin-test-helpers')
+} = require('@openzeppelin/test-helpers')
 const BN = web3.utils.BN
 const { expect } = require('chai')
 const utils = require('./helpers/utils')

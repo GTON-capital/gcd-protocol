@@ -3,6 +3,8 @@ import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import "@nomiclabs/hardhat-etherscan"
 import "hardhat-gas-reporter"
+import "@nomiclabs/hardhat-web3"
+import "@nomiclabs/hardhat-truffle5"
 
 require('dotenv').config();
 import { resolve } from "path";

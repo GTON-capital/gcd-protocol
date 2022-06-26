@@ -1,5 +1,5 @@
 const Parameters = artifacts.require('VaultParameters');
-const { constants, expectEvent, expectRevert } = require('openzeppelin-test-helpers');
+const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS} = constants;
 const GCD = artifacts.require('GCD');
 const BN = web3.utils.BN;

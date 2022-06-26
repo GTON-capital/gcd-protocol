@@ -1,7 +1,7 @@
 const {
 		constants : { ZERO_ADDRESS },
 		expectEvent
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const chai = require('chai');
 const assertArrays = require('chai-arrays');
 chai.use(assertArrays);

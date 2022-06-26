@@ -1,21 +1,21 @@
-const { expectEvent } = require('openzeppelin-test-helpers');
+const { expectEvent } = require('@openzeppelin/test-helpers');
 const BN = web3.utils.BN;
 const { expect } = require('chai');
 const { nextBlockNumber } = require('./helpers/time');
 const utils = require('./helpers/utils');
 
-contract('LiquidationTriggerKeep3rPoolToken', function([
+contract('LiquidationTriggerChainlinkPoolToken', function([
  positionOwner,
  liquidator,
 ]) {
 	// deploy & initial settings
 	beforeEach(async function() {
-		this.utils = utils(this, 'sushiswapKeep3rPoolToken');
+		this.utils = utils(this, 'chainlinkPoolToken');
 		this.deployer = positionOwner;
 		await this.utils.deploy();
 	});
 
-	it('Should liquidate undercollateralized position', async function () {
+	it('Should liquidate undercollateralized position', async function() {
 		const mainAmount = new BN('3');
 		const gcdAmount = new BN('78');
 
@@ -23,7 +23,7 @@ contract('LiquidationTriggerKeep3rPoolToken', function([
 
 		/*
 		 * Spawned position params:
-		 * collateral value = 44.72 * 2 = 134.16$
+		 * collateral value = 44.72 * 3 = 134.16$
 		 * utilization percent = 78 / 134.16 = ~58%
 		 */
 		await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
@@ -43,19 +43,16 @@ contract('LiquidationTriggerKeep3rPoolToken', function([
 		const wethReserve = new BN(1e12).sub(wethReceive);
 		const mainUsdValueAfterSwap = wethReserve.mul(new BN(250)).mul(new BN(2)).mul(mainAmount).div(lpSupply);
 
-		/*
-		 * collateral value after dump = ~112.29$
-		 */
-		await this.uniswapRouter.swapExactTokensForTokens(
-			mainSwapAmount,
-			'1',
-			[this.mainCollateral.address, this.weth.address],
-			positionOwner,
-			'9999999999999999',
-		);
+		const newPriceOfMainInUsd = 1.301e8
+		await this.mainUsd.setPrice(newPriceOfMainInUsd);
 
 		/*
-		 * utilization percent after swap = 78 / 112.29 = ~69.46%
+		 * collateral value after dump = ~108$
+		 */
+
+
+		/*
+		 * utilization percent after swap = 78 / 108 = ~72%
 		 */
 
 		const totalCollateralUsdValue = mainUsdValueAfterSwap;

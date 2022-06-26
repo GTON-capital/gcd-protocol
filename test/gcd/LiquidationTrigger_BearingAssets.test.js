@@ -1,25 +1,29 @@
 const {
 	expectEvent,
 	ether
-} = require('openzeppelin-test-helpers');
-const BN = web3.utils.BN;
-const { expect } = require('chai');
-const { nextBlockNumber } = require('./helpers/time');
-const utils = require('./helpers/utils');
+} = require('@openzeppelin/test-helpers')
+const BN = web3.utils.BN
+const { expect } = require('chai')
+const { nextBlockNumber } = require('./helpers/time')
+const utils = require('./helpers/utils')
 
-contract('LiquidationTriggerKeep3rMainAsset', function([
+contract('LiquidationTriggerSimple', function([
 	positionOwner,
 	liquidator,
 ]) {
 	// deploy & initial settings
 	beforeEach(async function() {
-		this.utils = utils(this, 'sushiswapKeep3rMainAsset');
-		this.deployer = positionOwner;
-		await this.utils.deploy();
+		this.utils = utils(this, 'bearingAssetSimple')
+		this.deployer = positionOwner
+		await this.utils.deploy()
+
+		// make 1 bearing asset equal to 2 main tokens
+		const supply = await this.bearingAsset.totalSupply()
+		await this.mainCollateral.transfer(this.bearingAsset.address, supply.mul(new BN('2')))
 	});
 
 	it('Should trigger liquidation of undercollateralized position', async function () {
-		const mainAmount = ether('60');
+		const mainAmount = ether('30');
 		const gcdAmount = ether('70');
 
 		/*
@@ -27,7 +31,7 @@ contract('LiquidationTriggerKeep3rMainAsset', function([
 		 * collateral value = 60 * 2 = 120$
 		 * utilization percent = 70 / 120 = ~58.33%
 		 */
-		await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
+		await this.utils.join(this.bearingAsset, mainAmount, gcdAmount);
 
 		/*
 		 * Main collateral/WETH pool params before swap:
@@ -41,7 +45,7 @@ contract('LiquidationTriggerKeep3rMainAsset', function([
 		const wethReceive = mainSwapAmount.mul(new BN(997)).mul(new BN(1e12)).div(new BN(125e12).mul(new BN(1000)).add(mainSwapAmount.mul(new BN(997))));
 		const wethReserve = new BN(1e12).sub(wethReceive);
 		const mainReserve = new BN(125e12).add(mainSwapAmount);
-		const mainUsdValueAfterSwap = wethReserve.mul(new BN(250)).mul(mainAmount).div(mainReserve);
+		const mainUsdValueAfterSwap = wethReserve.mul(new BN(250)).mul(mainAmount.mul(new BN('2'))).div(mainReserve);
 
 		/*
 		 * Some collateral/WETH pool params after swap:
@@ -66,29 +70,34 @@ contract('LiquidationTriggerKeep3rMainAsset', function([
 		const expectedLiquidationBlock = await nextBlockNumber();
 
 		const totalCollateralUsdValue = mainUsdValueAfterSwap;
-		const initialDiscount = await this.vaultManagerParameters.liquidationDiscount(this.mainCollateral.address);
+		const initialDiscount = await this.vaultManagerParameters.liquidationDiscount(this.bearingAsset.address);
 		const expectedLiquidationPrice = totalCollateralUsdValue.sub(totalCollateralUsdValue.mul(initialDiscount).div(new BN(1e5)));
 
-		const { logs } = await this.utils.triggerLiquidation(this.mainCollateral, positionOwner, liquidator);
+		const { logs } = await this.utils.triggerLiquidation(this.bearingAsset, positionOwner, liquidator);
 		expectEvent.inLogs(logs, 'LiquidationTriggered', {
-			asset: this.mainCollateral.address,
+			asset: this.bearingAsset.address,
 			owner: positionOwner,
 		});
 
-		const liquidationBlock = await this.vault.liquidationBlock(this.mainCollateral.address, positionOwner);
-		const liquidationPrice = await this.vault.liquidationPrice(this.mainCollateral.address, positionOwner);
+		const liquidationBlock = await this.vault.liquidationBlock(this.bearingAsset.address, positionOwner);
+		const liquidationPrice = await this.vault.liquidationPrice(this.bearingAsset.address, positionOwner);
 
 		expect(liquidationBlock).to.be.bignumber.equal(expectedLiquidationBlock);
 		expect(liquidationPrice).to.be.bignumber.equal(expectedLiquidationPrice);
 	})
 
 	it('Should fail to trigger liquidation of collateralized position', async function () {
-		const mainAmount = ether('60');
+		const mainAmount = ether('30');
 		const gcdAmount = ether('70');
 
-		await this.utils.spawn(this.mainCollateral, mainAmount, gcdAmount);
+		/*
+		 * Spawned position params:
+		 * collateral value = 60 * 2 = 120$
+		 * utilization percent = 70 / 120 = 58.3%
+		 */
+		await this.utils.join(this.bearingAsset, mainAmount, gcdAmount);
 
-		const tx = this.utils.triggerLiquidation(this.mainCollateral, positionOwner, liquidator);
+		const tx = this.utils.triggerLiquidation(this.bearingAsset, positionOwner, liquidator);
 		await this.utils.expectRevert(tx, "GCD Protocol: SAFE_POSITION");
 	})
 });

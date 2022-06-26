@@ -1,15 +1,14 @@
 const {
 	expectEvent,
-	expectRevert,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const BN = web3.utils.BN;
 const { expect } = require('chai');
 const utils = require('./helpers/utils');
-const increaseTime = require('./helpers/timeTravel');
-const time = require('./helpers/time');
 
 [
-	'keydonixPoolToken',
+	'chainlinkPoolToken',
+	'sushiswapKeep3rPoolToken',
+	'uniswapKeep3rPoolToken'
 ].forEach(oracleMode =>
 	contract(`CDPManager with ${oracleMode} oracle`, function([
 		deployer,
@@ -32,7 +31,7 @@ const time = require('./helpers/time');
 
 					expectEvent.inLogs(logs, 'Join', {
 						asset: this.poolToken.address,
-						user: deployer,
+						owner: deployer,
 						main: mainAmount,
 						gcd: gcdAmount,
 					});
@@ -42,6 +41,7 @@ const time = require('./helpers/time');
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(mainAmount);
 					expect(gcdBalance).to.be.bignumber.equal(gcdAmount);
+					expect(await this.cdpRegistry.isListed(this.poolToken.address, deployer)).to.equal(true);
 				})
 			})
 
@@ -57,7 +57,7 @@ const time = require('./helpers/time');
 
 					expectEvent.inLogs(logs, 'Exit', {
 						asset: this.poolToken.address,
-						user: deployer,
+						owner: deployer,
 						main: mainAmount,
 						gcd: gcdAmount,
 					});
@@ -65,40 +65,7 @@ const time = require('./helpers/time');
 					const mainAmountInPosition = await this.vault.collaterals(this.poolToken.address, deployer);
 
 					expect(mainAmountInPosition).to.be.bignumber.equal(new BN(0));
-				})
-
-				it('Should accumulate fee when stability fee above zero and make repayment', async function() {
-					await this.vaultParameters.setStabilityFee(this.poolToken.address, 3000); // 3% st. fee
-					const mainAmount = new BN('100');
-					const gcdAmount = new BN('20');
-
-					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
-
-					const timeStart = await time.latest();
-
-					await increaseTime(3600 * 24);
-
-					const accumulatedDebt = await this.vault.getTotalDebt(this.poolToken.address, deployer);
-
-					let expectedDebt = gcdAmount.mul(new BN('3000')).mul((await time.latest()).sub(timeStart)).div(new BN(365*24*60*60)).div(new BN('100000')).add(gcdAmount);
-
-					expect(accumulatedDebt.div(new BN(10 ** 12))).to.be.bignumber.equal(
-						expectedDebt.div(new BN(10 ** 12))
-					);
-
-					// get some gcd to cover fee
-					await this.utils.updatePrice();
-					await this.utils.spawnEth(new BN('2'), new BN('1'), new BN('2'));
-
-					// repay debt partially
-					await this.utils.repay(this.poolToken, deployer, gcdAmount.div(new BN(2)));
-
-					let accumulatedDebtAfterRepayment = await this.vault.getTotalDebt(this.poolToken.address, deployer);
-					expect(accumulatedDebtAfterRepayment.div(new BN(10 ** 12))).to.be.bignumber.equal(
-						expectedDebt.div(new BN(2)).div(new BN(10 ** 12))
-					);
-
-					await this.utils.repayAllAndWithdraw(this.poolToken, deployer);
+					expect(await this.cdpRegistry.isListed(this.poolToken.address, deployer)).to.equal(false);
 				})
 
 				it('Should partially repay the debt of a position and withdraw collaterals partially', async function() {
@@ -114,7 +81,7 @@ const time = require('./helpers/time');
 
 					expectEvent.inLogs(logs, 'Exit', {
 						asset: this.poolToken.address,
-						user: deployer,
+						owner: deployer,
 						main: mainToWithdraw,
 						gcd: gcdToRepay,
 					});
@@ -127,7 +94,7 @@ const time = require('./helpers/time');
 				})
 			})
 
-			it('Should deposit collaterals to position and mint GCD', async function () {
+			it('Should deposit collaterals to position and mint GCD', async function() {
 				let mainAmount = new BN('100');
 				let gcdAmount = new BN('20');
 
@@ -137,7 +104,7 @@ const time = require('./helpers/time');
 
 				expectEvent.inLogs(logs, 'Join', {
 					asset: this.poolToken.address,
-					user: deployer,
+					owner: deployer,
 					main: mainAmount,
 					gcd: gcdAmount,
 				});
@@ -149,7 +116,7 @@ const time = require('./helpers/time');
 				expect(gcdBalance).to.be.bignumber.equal(gcdAmount.mul(new BN(2)));
 			})
 
-			it('Should withdraw collaterals from position and repay (burn) GCD', async function () {
+			it('Should withdraw collaterals from position and repay (burn) GCD', async function() {
 				let mainAmount = new BN('100');
 				let gcdAmount = new BN('20');
 
@@ -212,39 +179,15 @@ const time = require('./helpers/time');
 				})
 			})
 
-			describe('Join', function () {
-				it('Reverts non-spawned position', async function() {
-					const mainAmount = new BN('100');
-					const gcdAmount = new BN('20');
-
-					const tx = this.utils.join(
-						this.poolToken,
-						mainAmount,
-						gcdAmount
-					);
-					await this.utils.expectRevert(tx, "GCD Protocol: NOT_SPAWNED_POSITION");
-				})
-			})
-
-			describe('Exit', function () {
+			describe('Exit', function() {
 				it('Reverts non valuable tx', async function() {
 					const mainAmount = new BN('100');
 					const gcdAmount = new BN('20');
 
 					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
-					const tx = this.utils.exit(this.poolToken, 0, 0, 0);
+					const tx = this.utils.exit(this.poolToken, 0, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: USELESS_TX");
-				})
-
-				it('Reverts when specified repayment amount is greater than the accumulated debt', async function() {
-					const mainAmount = new BN('100');
-					const gcdAmount = new BN('20');
-
-					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
-
-					const tx = this.utils.exit(this.poolToken, mainAmount, gcdAmount.add(new BN(1)));
-					await expectRevert.unspecified(tx);
 				})
 
 				it('Reverts when position state after exit becomes undercollateralized', async function() {
@@ -253,10 +196,10 @@ const time = require('./helpers/time');
 
 					await this.utils.spawn(this.poolToken, mainAmount, gcdAmount);
 
-					const tx = this.utils.exit(this.poolToken, mainAmount, 0, 0);
+					const tx = this.utils.exit(this.poolToken, mainAmount, 0);
 					await this.utils.expectRevert(tx, "GCD Protocol: UNDERCOLLATERALIZED");
 				})
 			})
 		})
 	})
-);
+)

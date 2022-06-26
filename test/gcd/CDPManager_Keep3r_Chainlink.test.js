@@ -1,7 +1,7 @@
 const {
 	expectEvent,
 	ether,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const balance = require('./helpers/balances');
 const BN = web3.utils.BN;
 const { expect } = require('chai');

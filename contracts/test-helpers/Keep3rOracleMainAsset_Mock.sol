@@ -24,10 +24,10 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
 
     IAggregator public immutable ethUsdChainlinkAggregator;
 
-    IUniswapV2Factory public immutable uniswapFactory;
+    MockIUniswapV2Factory public immutable uniswapFactory;
 
     constructor(
-        IUniswapV2Factory uniFactory,
+        MockIUniswapV2Factory uniFactory,
         address weth,
         IAggregator chainlinkAggregator
     )

@@ -38,7 +38,7 @@ const StETHPriceFeed = artifacts.require('StETHPriceFeed');
 const StETHStableSwapOracle = artifacts.require('StETHStableSwapOracle');
 const StETHCurvePool = artifacts.require('StETHCurvePool');
 
-const { ether } = require('openzeppelin-test-helpers');
+const { ether } = require('@openzeppelin/test-helpers');
 const { calculateAddressAtNonce, deployContractBytecode } = require('./deployUtils');
 const BN = web3.utils.BN;
 const { expect } = require('chai');

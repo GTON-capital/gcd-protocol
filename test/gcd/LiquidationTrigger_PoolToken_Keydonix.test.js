@@ -1,4 +1,4 @@
-const { expectEvent } = require('openzeppelin-test-helpers');
+const { expectEvent } = require('@openzeppelin/test-helpers');
 const BN = web3.utils.BN;
 const { expect } = require('chai');
 const { nextBlockNumber } = require('./helpers/time');

@@ -179,49 +179,6 @@ async function deployMockAggregatorUSDCUSD() {
       });
 }
 
-async function deployChainlinkedOracleMainAsset() {
-    const Factory = await ethers.getContractFactory("ChainlinkedOracleMainAsset")
-    const contract = await Factory.deploy(
-        [wethAddress], // tokenAddresses1 - usd
-        [wethAggregatorUSD], // _usdAggregators
-        [], // tokenAddresses2 - eth
-        [], // _ethAggregators
-        wethAddress, // weth
-        vaultParameters, // VaultParameters
-    )
-    await contract.deployed()
-    console.log("Deploy address: ", contract.address)
-
-    await delay(20000)
-    await hre.run("verify:verify", {
-        address: contract.address,
-        network: hre.network,
-        constructorArguments: [
-            [wethAddress], // tokenAddresses1 - usd
-            [wethAggregatorUSD], // _usdAggregators
-            [], // tokenAddresses2 - eth
-            [], // _ethAggregators
-            wethAddress, // weth
-            vaultParameters, // VaultParameters
-        ]
-      });
-}
-
-async function setChainlinkAddressForUSDC() {
-    const Factory = await ethers.getContractFactory("ChainlinkedOracleMainAsset")
-    const contract = Factory.attach(chainlinkedOracleMainAsset)
-
-    let tx = await contract.setAggregators(
-        [usdcAddress], // tokenAddresses1
-        [chainlinkUSDCUSDAddress], // _usdAggregators
-        [], // tokenAddresses2
-        [], // _ethAggregators
-    )
-    console.log("Set USDC chainlink address tx: " + tx.hash)
-    await tx.wait()
-    console.log("USDC chainlink address set")
-}
-
 async function deployUniV3() {
     const Factory = await ethers.getContractFactory("UniswapV3OracleGCD") // No arguments
     const contract = await Factory.deploy(

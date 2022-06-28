@@ -1,6 +1,8 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 
+const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
+
 const vaultParamsRopsten = "0x634Cd07fce65a2f2930B55c7b1b20a97196d362F"
 const vaultParamsEthereum = ""
 const vaultParams = vaultParamsRopsten
@@ -25,7 +27,8 @@ const uniV3Oracle = uniV3OracleRopsten
 
 const wethRopsten = "0xc778417e063141139fce010982780140aa0cd5ab"
 const wethEthereum = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-const weth = wethRopsten
+const wethRinkeby = "0xc778417e063141139fce010982780140aa0cd5ab"
+const wethAddress = wethRinkeby
 
 const usdcAddressRopsten = "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8" // gtonUSDC
 const usdcAddressEthereum = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
@@ -33,7 +36,8 @@ const usdcAddress = usdcAddressRopsten
 
 const gtonAddressRopsten = "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6"
 const gtonAddressEthereum = "0x01e0e2e61f554ecaaec0cc933e739ad90f24a86d"
-const gtonAddress = gtonAddressRopsten
+const gtonAddressRinkeby = "0x449d7980bd24d1c1ecab9e0fc55b3bb665212fa5"
+const gtonAddress = gtonAddressRinkeby
 
 const collateralRegistryRopsten = "0x5018c2a74015e09D9B72ac9571D2Ff5594355b63"
 const collateralRegistryEthereum = ""
@@ -51,16 +55,86 @@ const cdpManager01Ropsten = "0x7023401be71E1D8C8c9548933A2716aB3234E754"
 const cdpManager01Ethereum = ""
 const cdpManager01 = cdpManager01Ropsten
 
+var deployer;
+
 async function main() {
-    await setChainkinkedOracleUSDC()
+    deployer = await getDeployer()
+
+    await deployGCDParamsVault()
+}
+
+async function getDeployer() {
+    const [deployer] = await ethers.getSigners()   
+    console.log("Account : ", deployer.address)
+    console.log("Account balance: ", (await deployer.getBalance()).toString()) 
+    return deployer
+}
+
+async function deployGCDParamsVault() {
+    // GCD
+    const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    const GCDFactory = await ethers.getContractFactory("GCD")
+    const gcd = await GCDFactory.deploy(
+        parametersAddr
+    )
+    await gcd.deployed()
+    console.log("Deploy address GCD: ", gcd.address)
+
+    await delay(20000)
+    await hre.run("verify:verify", {
+        address: gcd.address,
+        network: hre.network,
+        constructorArguments: [
+            parametersAddr
+        ]
+      });
+
+    const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    
+    // Parameters
+    const ParamsFactory = await ethers.getContractFactory("VaultParameters")
+    const parameters = await ParamsFactory.deploy(
+        vaultAddr,
+        deployer.address // Multisig
+    )
+    await parameters.deployed()
+    console.log("Deploy address VaultParameters: ", parameters.address)
+
+    await delay(20000)
+    await hre.run("verify:verify", {
+        address: parameters.address,
+        network: hre.network,
+        constructorArguments: [
+            vaultAddr,
+            deployer.address // Multisig
+        ]
+      });
+
+    // Vault
+    const VaultFactory = await ethers.getContractFactory("Vault")
+    const vault = await VaultFactory.deploy(
+        parameters.address,
+        gtonAddress,
+        gcd.address,
+        wethAddress
+    )
+    await vault.deployed()
+    console.log("Deploy address Vault: ", vault.address)
+
+    await delay(20000)
+    await hre.run("verify:verify", {
+        address: vault.address,
+        network: hre.network,
+        constructorArguments: [
+            parameters.address,
+            gtonAddress,
+            gcd.address,
+            wethAddress
+        ]
+      });
 }
 
 async function deployOracleRegistry() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.deploy(
         vaultParams,
@@ -81,11 +155,6 @@ async function deployOracleRegistry() {
 }
 
 async function deployCollateralRegistry() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("CollateralRegistry")
     const contract = await Factory.deploy(
         vaultParams,
@@ -106,11 +175,6 @@ async function deployCollateralRegistry() {
 }
 
 async function deployCDPRegistry() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("CDPRegistry")
     const contract = await Factory.deploy(
         vault,
@@ -131,11 +195,6 @@ async function deployCDPRegistry() {
 }
 
 async function deployVaultManagerParameters() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultManagerParameters")
     const contract = await Factory.deploy(
         vaultParams
@@ -154,11 +213,6 @@ async function deployVaultManagerParameters() {
 }
 
 async function setVaultManagerParametersAsManagerOfVaultParams() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(vaultParams)
     
@@ -168,11 +222,6 @@ async function setVaultManagerParametersAsManagerOfVaultParams() {
 }
 
 async function deployCDPManager01() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("CDPManager01")
     const contract = await Factory.deploy(
         vaultManagerParameters,
@@ -195,11 +244,6 @@ async function deployCDPManager01() {
 }
 
 async function setCDPManagerVaultAccess() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(vaultParams)
 
@@ -209,11 +253,6 @@ async function setCDPManagerVaultAccess() {
 }
 
 async function setChainkinkedOracleWeth() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.attach(oracleRegistry)
 
@@ -223,11 +262,6 @@ async function setChainkinkedOracleWeth() {
 }
 
 async function setChainkinkedOracleUSDC() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.attach(oracleRegistry)
 
@@ -237,11 +271,6 @@ async function setChainkinkedOracleUSDC() {
 }
 
 async function enableOracleTypeForWethOnVaultParams() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(vaultParams)
 
@@ -251,11 +280,6 @@ async function enableOracleTypeForWethOnVaultParams() {
 }
 
 async function addUniV3Oracle() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.attach(oracleRegistry)
 
@@ -265,11 +289,6 @@ async function addUniV3Oracle() {
 }
 
 async function setUniV3OracleGton() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.attach(oracleRegistry)
 
@@ -279,11 +298,6 @@ async function setUniV3OracleGton() {
 }
 
 async function enableOracleTypeForGtonOnVaultParams() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(vaultParams)
 
@@ -309,11 +323,6 @@ async function enableOracleTypeForGtonOnVaultParams() {
      **/
 
  async function setWethCollateralOnManagerParameters() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultManagerParameters")
     const contract = Factory.attach(vaultManagerParameters)
     
@@ -337,11 +346,6 @@ async function enableOracleTypeForGtonOnVaultParams() {
  }
 
 async function setGtonCollateralOnManagerParameters() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("VaultManagerParameters")
     const contract = Factory.attach(vaultManagerParameters)
     
@@ -363,11 +367,6 @@ async function setGtonCollateralOnManagerParameters() {
 }
 
 async function borrowGCDForGTON() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("CDPManager01")
     const contract = Factory.attach(cdpManager01)
     
@@ -381,11 +380,6 @@ async function borrowGCDForGTON() {
 }
 
 async function borrowGCDForEth() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("CDPManager01")
     const contract = Factory.attach(cdpManager01)
     
@@ -427,11 +421,6 @@ async function deployChainlinkedOracleMainAsset() {
 }
 
 async function addChainkinkedOracleToRegistry() {
-    const [deployer] = await ethers.getSigners()
-
-    console.log("Working with the account:", deployer.address)
-    console.log("Account balance:", (await deployer.getBalance()).toString())
-
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = await Factory.attach(oracleRegistry)
 
@@ -454,6 +443,22 @@ async function setChainlinkAddressForUSDC() {
     await tx.wait()
     console.log("USDC chainlink address set")
 }
+
+async function bumpNonce() {  
+    let txData = {
+      to: "0x50DF0af8a06f82fCcB0aCb77D8c986785b36d734",
+      value: 1
+    }
+  
+    let desiredNonce = 122
+    while (await ethers.provider.getTransactionCount(deployer.address) < desiredNonce) {
+      console.log(await ethers.provider.getTransactionCount(deployer.address))
+      let tx = await deployer.sendTransaction(txData)
+      console.log(tx.hash)
+      await tx.wait()
+    }
+  }
+
 
 async function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

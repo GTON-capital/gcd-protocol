@@ -240,6 +240,32 @@ async function setGtonQuoteParamsUSDC() {
     console.log("Quote params set")
 }
 
+async function deployMockRandomAggregatorWethUSD() {
+    const name = "ETH / USD"
+    const price = 120554000000
+    const decimals = 8
+
+    const Factory = await ethers.getContractFactory("MockRandomAggregator")
+    const contract = await Factory.deploy(
+        name,
+        price,
+        decimals
+    )
+    await contract.deployed()
+    console.log("Deploy address: ", contract.address)
+
+    await delay(20000)
+    await hre.run("verify:verify", {
+        address: contract.address,
+        network: hre.network,
+        constructorArguments: [
+            name,
+            price,
+            decimals
+        ]
+      });
+}
+
 async function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

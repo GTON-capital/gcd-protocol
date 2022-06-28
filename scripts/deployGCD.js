@@ -27,8 +27,8 @@ const uniV3Oracle = uniV3OracleRopsten
 
 const wethRopsten = "0xc778417e063141139fce010982780140aa0cd5ab"
 const wethEthereum = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-const wethRinkeby = "0xc778417e063141139fce010982780140aa0cd5ab"
-const wethAddress = wethRinkeby
+const wethGoerli = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+const wethAddress = wethGoerli
 
 const usdcAddressRopsten = "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8" // gtonUSDC
 const usdcAddressEthereum = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
@@ -36,8 +36,8 @@ const usdcAddress = usdcAddressRopsten
 
 const gtonAddressRopsten = "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6"
 const gtonAddressEthereum = "0x01e0e2e61f554ecaaec0cc933e739ad90f24a86d"
-const gtonAddressRinkeby = "0x449d7980bd24d1c1ecab9e0fc55b3bb665212fa5"
-const gtonAddress = gtonAddressRinkeby
+const gtonAddressGoerli = "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6"
+const gtonAddress = gtonAddressGoerli
 
 const collateralRegistryRopsten = "0x5018c2a74015e09D9B72ac9571D2Ff5594355b63"
 const collateralRegistryEthereum = ""
@@ -81,13 +81,17 @@ async function deployGCDParamsVault() {
     console.log("Deploy address GCD: ", gcd.address)
 
     await delay(20000)
-    await hre.run("verify:verify", {
-        address: gcd.address,
-        network: hre.network,
-        constructorArguments: [
-            parametersAddr
-        ]
-      });
+    try {
+        await hre.run("verify:verify", {
+            address: gcd.address,
+            network: hre.network,
+            constructorArguments: [
+                parametersAddr
+            ]
+        });
+    } catch (error) {
+        console.error(error);
+    }
 
     const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
     
@@ -101,14 +105,18 @@ async function deployGCDParamsVault() {
     console.log("Deploy address VaultParameters: ", parameters.address)
 
     await delay(20000)
-    await hre.run("verify:verify", {
-        address: parameters.address,
-        network: hre.network,
-        constructorArguments: [
-            vaultAddr,
-            deployer.address // Multisig
-        ]
-      });
+    try {
+        await hre.run("verify:verify", {
+            address: parameters.address,
+            network: hre.network,
+            constructorArguments: [
+                vaultAddr,
+                deployer.address // Multisig
+            ]
+        });
+    } catch (error) {
+        console.error(error);
+    }
 
     // Vault
     const VaultFactory = await ethers.getContractFactory("Vault")
@@ -122,16 +130,20 @@ async function deployGCDParamsVault() {
     console.log("Deploy address Vault: ", vault.address)
 
     await delay(20000)
-    await hre.run("verify:verify", {
-        address: vault.address,
-        network: hre.network,
-        constructorArguments: [
-            parameters.address,
-            gtonAddress,
-            gcd.address,
-            wethAddress
-        ]
-      });
+    try {
+        await hre.run("verify:verify", {
+            address: vault.address,
+            network: hre.network,
+            constructorArguments: [
+                parameters.address,
+                gtonAddress,
+                gcd.address,
+                wethAddress
+            ]
+        });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function deployOracleRegistry() {
@@ -444,13 +456,13 @@ async function setChainlinkAddressForUSDC() {
     console.log("USDC chainlink address set")
 }
 
-async function bumpNonce() {  
+async function bumpNonce(desiredNonce) {  
+    console.log("Bumping TX to nonce: " + desiredNonce)
     let txData = {
       to: "0x50DF0af8a06f82fCcB0aCb77D8c986785b36d734",
       value: 1
     }
-  
-    let desiredNonce = 122
+
     while (await ethers.provider.getTransactionCount(deployer.address) < desiredNonce) {
       console.log(await ethers.provider.getTransactionCount(deployer.address))
       let tx = await deployer.sendTransaction(txData)
@@ -458,7 +470,6 @@ async function bumpNonce() {
       await tx.wait()
     }
   }
-
 
 async function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

@@ -5,8 +5,8 @@
   "author": "@bcngod",
   "license": "Business Source License 1.1",
   "scripts": {
-    "deploy:gcd:rinkeby": "hardhat run --network rinkeby ./scripts/deployGCD.js",
-    "deploy:oracles:rinkeby": "hardhat run --network rinkeby ./scripts/deployOracles.js",
+    "deploy:gcd:goerli": "hardhat run --network goerli ./scripts/deployGCD.js",
+    "deploy:oracles:goerli": "hardhat run --network goerli ./scripts/deployOracles.js",
     "deploy:oracles:gton": "hardhat run --network gton ./scripts/deployOracles.js"
   },
   "dependencies": {

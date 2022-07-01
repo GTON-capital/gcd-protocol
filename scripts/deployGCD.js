@@ -10,15 +10,16 @@ var configEthereum = {
     vaultParams: "",
     vault: "",
     oracleRegistry: "",
-    chainlinkedOracleMainAsset: "",
-    uniV3Oracle: "",
-    wethAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-    usdcAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-    gtonAddress: "0x01e0e2e61f554ecaaec0cc933e739ad90f24a86d",
-    collateralRegistryRopsten: "",
+    collateralRegistry: "",
     cdpRegistry: "",
     vaultManagerParameters: "",
     cdpManager01: "",
+    chainlinkedOracleMainAsset: "",
+    uniV3Oracle: "",
+    // External contracts
+    wethAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    usdcAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    gtonAddress: "0x01e0e2e61f554ecaaec0cc933e739ad90f24a86d",
     chainlinkETHUSDAddress: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
     chainlinkUSDCUSDAddress: "",
 }
@@ -30,15 +31,16 @@ var configGoerli = {
     vaultParams: "0x634Cd07fce65a2f2930B55c7b1b20a97196d362F",
     vault: "0x097f64Be4E8De6608B1d28B3732aD480D8d45823",
     oracleRegistry: "",
-    chainlinkedOracleMainAsset: "",
-    uniV3Oracle: "",
-    wethAddress: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-    usdcAddress: "",
-    gtonAddress: "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6",
-    collateralRegistryRopsten: "",
+    collateralRegistry: "",
     cdpRegistry: "",
     vaultManagerParameters: "",
     cdpManager01: "",
+    chainlinkedOracleMainAsset: "",
+    uniV3Oracle: "",
+    // External contracts
+    wethAddress: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+    usdcAddress: "",
+    gtonAddress: "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6",
     chainlinkETHUSDAddress: "",
     chainlinkUSDCUSDAddress: "",
 }
@@ -50,15 +52,16 @@ var configRopsten = {
     vaultParams: "0x634Cd07fce65a2f2930B55c7b1b20a97196d362F",
     vault: "0x097f64Be4E8De6608B1d28B3732aD480D8d45823",
     oracleRegistry: "0x85d7676ff4339C7e59eb7e90F160E909fc65d3bd",
-    chainlinkedOracleMainAsset: "0x406B838E5Ac09D90e7cB48187AD7f4075184eB28",
-    uniV3Oracle: "0xC8159047230668ffa0Fe7a026d2a5BC4D95bf981",
-    wethAddress: "0xc778417e063141139fce010982780140aa0cd5ab",
-    usdcAddress: "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8", // gtonUSDC
-    gtonAddress: "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6",
-    collateralRegistryRopsten: "0x5018c2a74015e09D9B72ac9571D2Ff5594355b63",
+    collateralRegistry: "0x5018c2a74015e09D9B72ac9571D2Ff5594355b63",
     cdpRegistry: "0xD0011dE099E514c2094a510dd0109F91bf8791Fa",
     vaultManagerParameters: "0x3c4925B50e337aeCC2cF4B9E4767B43DcfbaD286",
     cdpManager01: "0x7023401be71E1D8C8c9548933A2716aB3234E754",
+    chainlinkedOracleMainAsset: "0x406B838E5Ac09D90e7cB48187AD7f4075184eB28",
+    uniV3Oracle: "0xC8159047230668ffa0Fe7a026d2a5BC4D95bf981",
+    // External contracts
+    wethAddress: "0xc778417e063141139fce010982780140aa0cd5ab",
+    usdcAddress: "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8", // gtonUSDC
+    gtonAddress: "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6",
     chainlinkETHUSDAddress: "0xc6d5398e7174eb8f2F831C40E0711d5d613df27E",
     chainlinkUSDCUSDAddress: "0x801bBB7A8C4B54BcC3f787da400694223dAe6731",
 }
@@ -81,7 +84,8 @@ async function getDeployer() {
 }
 
 async function deployAndSetupRestOfTheCore() {
-
+    await deployOracleRegistry()
+    await deployCollateralRegistry()
 }
 
 async function deployAndSetupOracles() {

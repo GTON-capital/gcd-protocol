@@ -5,8 +5,9 @@ const UniswapV3Pool = require("@uniswap/v3-core/artifacts/contracts/UniswapV3Poo
 
 // const poolAddressRopsten = "0xd2a6d30c2037390dc8e247d6b7e0ec11e3047499" // fee - 10000
 const poolAddressRopsten = "0xf3a495bc52ae01815cd4b65b0300c894d86e713a" // fee - 3000
-const poolAddressEthereum = ""
-const poolAddress = poolAddressRopsten
+const poolAddressGoerli = "0xf3a495bc52ae01815cd4b65b0300c894d86e713a" // fee - 3000
+const poolAddressEthereum = "0xe40a2eab69d4de66bccb0ac8e2517a230c6312e8"
+const poolAddress = poolAddressGoerli
 
 async function main() {
     await increaseCardinality()
@@ -15,8 +16,8 @@ async function main() {
 async function increaseCardinality() {
     let contract = await getContract()
 
-    // 144 - roughly 30 mins
-    let tx = await contract.increaseObservationCardinalityNext(144) 
+    // 144 - roughly 30 mins, we take a little bit more
+    let tx = await contract.increaseObservationCardinalityNext(150) 
     await tx.wait()
     console.log("Tx hash:  " + tx.hash)
 }

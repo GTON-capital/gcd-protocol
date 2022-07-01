@@ -36,7 +36,7 @@ var configGoerli = {
     vaultManagerParameters: "0x5f442aE49f1a17954bB1490F8fa6F1c5E04afFd0",
     cdpManager01: "0x9499e7a07Ec60731F2b063A5F29595DB02eF6567",
     chainlinkedOracleMainAsset: "0xC8159047230668ffa0Fe7a026d2a5BC4D95bf981",
-    uniV3Oracle: "0x406B838E5Ac09D90e7cB48187AD7f4075184eB28",
+    uniV3Oracle: "0xE70fFd03131675258bd421e98e5552FDfd01aDeA",
     // External contracts
     wethAddress: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
     usdcAddress: "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8",
@@ -73,7 +73,8 @@ var deployer;
 async function main() {
     deployer = await getDeployer()
 
-    // await deployAndSetupRestOfTheCore()
+    await deployBaseOfCore()
+    await deployAndSetupRestOfTheCore()
     await deployAndSetupOracles()
 }
 
@@ -474,6 +475,7 @@ async function addChainkinkedOracleToRegistry() {
 
 async function deployUniV3Oracle() {
     console.log("deployUniV3Oracle")
+    throw "Don't forget to set VaultParameters & defaultQuoteAsset in contract code"
     if (config.uniV3Oracle != "") { console.log("Already deployed"); return }
     const Factory = await ethers.getContractFactory("UniswapV3OracleGCD") // No arguments
     const contract = await Factory.deploy(

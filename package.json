@@ -7,7 +7,8 @@
   "scripts": {
     "deploy:gcd:goerli": "hardhat run --network goerli ./scripts/deployGCD.js",
     "deploy:gcd:gton": "hardhat run --network gton ./scripts/deployGCD.js",
-    "deploy:deployTokens:goerli": "hardhat run --network goerli ./scripts/deployTokens.js"
+    "deploy:deployTokens:goerli": "hardhat run --network goerli ./scripts/deployTokens.js",
+    "increaseCardinality": "hardhat run --network goerli ./scripts/uniswapPoolUpdate.ts"
   },
   "dependencies": {
     "@keydonix/uniswap-oracle-contracts": "^1.0.2",
@@ -17,6 +18,7 @@
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^6.0.0",
+    "@uniswap/v3-core": "^1.0.1",
     "chai": "^4.2.0",
     "chai-arrays": "^2.2.0",
     "dotenv": "^8.2.0",

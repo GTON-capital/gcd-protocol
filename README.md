@@ -10,6 +10,13 @@ Contains git submodule [Oracles](https://github.com/GTON-capital/gcd-oracles). T
 git submodule init
 git submodule update
 ```
+
+## Run hardhat
+In order to run hardhat commands, a local .env file needs to be created that at least holds a private key that could be used for the creation of addresses in the different networks:
+'''
+PRIVATE_KEY = '<put your pricate key here>'
+'''
+
 # Contracts
 
 #### [Contract addresses](CONTRACTS.md)

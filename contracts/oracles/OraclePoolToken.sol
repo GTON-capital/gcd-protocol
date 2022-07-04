@@ -96,7 +96,8 @@ contract OraclePoolToken is IOracleUsd {
             uint a = aPool.mul(eAvg);
             uint b = a.mul(9).div(Q112);
             uint c = ePool.mul(3988000);
-            uint sqRoot = sqrt(a.div(Q112).mul(b.add(c)));
+            //uint sqRoot = sqrt(a.div(Q112).mul(b.add(c)));
+            uint sqRoot = b.add(c).mul(sqrt(a)).div(sqrt(Q112));
             uint d = a.mul(3).div(Q112);
             uint eChange = ePool.sub(d.add(sqRoot).div(2000));
             ePoolCalc = ePool.sub(eChange);

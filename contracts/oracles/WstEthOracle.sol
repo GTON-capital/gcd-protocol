@@ -73,8 +73,10 @@ contract WstEthOracle is IOracleUsd, Auth  {
         require(bearing == wstETH, "GCD Protocol: BEARING_IS_NOT_WSTETH");
         if (amount == 0) return 0;
         uint _qtyStEthByWstEth = IWstEthToken(bearing).getStETHByWstETH(amount);
-        (uint _poolPriceStEth, bool _isSafePrice, uint _oraclePriceStEth) = IStEthPriceFeed(stEthPriceFeed).full_price_info();
-        _isSafePrice = _poolPriceStEth <= 10**18 && !has_changed_unsafely(_poolPriceStEth, _oraclePriceStEth);
+        //(uint _poolPriceStEth, bool _isSafePrice, uint _oraclePriceStEth) = IStEthPriceFeed(stEthPriceFeed).full_price_info();
+        //_isSafePrice = _poolPriceStEth <= 10**18 && !has_changed_unsafely(_poolPriceStEth, _oraclePriceStEth);
+        (uint _poolPriceStEth, bool _isSafePriceUnused, uint _oraclePriceStEth) = IStEthPriceFeed(stEthPriceFeed).full_price_info();
+        bool _isSafePrice = _poolPriceStEth <= 10**18 && !has_changed_unsafely(_poolPriceStEth, _oraclePriceStEth);
         require(_isSafePrice == true, "GCD Protocol: STETH_PRICE_IS_NOT_SAFE");
         uint _decimals = getDecimalsStEth();
         uint underlyingAmount = _qtyStEthByWstEth.mul(_poolPriceStEth).div(10**_decimals);

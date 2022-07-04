@@ -103,7 +103,9 @@ contract CDPManager01_Fallback is ReentrancyGuard {
       }
 
       // mint GCD to owner
-      vault.borrow(asset, msg.sender, gcdAmount);
+      //vault.borrow(asset, msg.sender, gcdAmount);
+      uint256 borrowingAmount = vault.borrow(asset, msg.sender, gcdAmount);
+      require(borrowingAmount == gcdAmount, "borrowed wrong amount");
 
       // check collateralization
       _ensurePositionCollateralization(asset, msg.sender, proofData);

@@ -62,9 +62,11 @@ contract CurveLPOracle is IOracleUsd {
             }
         }
 
-        uint price_q112 = cP.get_virtual_price().mul(minCoinPrice_q112).div(PRECISION);
+        //uint price_q112 = cP.get_virtual_price().mul(minCoinPrice_q112).div(PRECISION);
+        uint price_q112 = cP.get_virtual_price().mul(minCoinPrice_q112);
+        uint price_times_amount = amount.mul(price_q112);
 
-        return amount.mul(price_q112);
+        return price_q112.div(PRECISION);
     }
 
 }

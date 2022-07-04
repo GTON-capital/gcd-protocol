@@ -103,7 +103,8 @@ contract CDPRegistry {
     function getCdpsByOwner(address owner) external view returns (CDP[] memory r) {
         address[] memory assets = cr.collaterals();
         CDP[] memory cdps = new CDP[](assets.length);
-        uint actualCdpsCount;
+        //uint actualCdpsCount;
+        uint actualCdpsCount = 0;
 
         for (uint i = 0; i < assets.length; i++) {
             if (isListed(assets[i], owner)) {

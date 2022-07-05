@@ -1,7 +1,29 @@
 const hre = require("hardhat");
+const upgrades  = require("hardhat");
 const { ethers } = hre;
 
 const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
+
+var upgradableConfigRopsten = {
+    chainkinkedOracleIndex: 1,
+    uniV3OracleIndex: 2,
+    gcd: "",
+    vaultParams: "",
+    vault: "",
+    oracleRegistry: "",
+    collateralRegistry: "",
+    cdpRegistry: "",
+    vaultManagerParameters: "",
+    cdpManager01: "",
+    chainlinkedOracleMainAsset: "",
+    uniV3Oracle: "",
+    // External contracts
+    wethAddress: "0xc778417e063141139fce010982780140aa0cd5ab",
+    usdcAddress: "0x46AfF14B22E4717934eDc2CB99bCB5Ea1185A5E8", // gtonUSDC
+    gtonAddress: "0xaab9f76100e3332dc559878b0ebbf31cc4ab72e6",
+    chainlinkETHUSDAddress: "0xc6d5398e7174eb8f2F831C40E0711d5d613df27E",
+    chainlinkUSDCUSDAddress: "0x801bBB7A8C4B54BcC3f787da400694223dAe6731",
+}
 
 var configEthereum = {
     chainkinkedOracleIndex: 1,
@@ -66,7 +88,7 @@ var configRopsten = {
     chainlinkUSDCUSDAddress: "0x801bBB7A8C4B54BcC3f787da400694223dAe6731",
 }
 
-const config = configGoerli
+const config = upgradableConfigRopsten
 
 var deployer;
 
@@ -124,218 +146,98 @@ async function deployAndSetupOracles() {
     await setGtonQuoteParamsUSDC()
 }
 
-async function deployBaseOfCore() {
-    // GCD
-    const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
-    const GCDFactory = await ethers.getContractFactory("GCD")
-    const gcd = await GCDFactory.deploy(
-        parametersAddr
-    )
-    await gcd.deployed()
-    console.log("GCD address: ", gcd.address)
-    config.gcd = gcd.address
+async function deploy(factoryName, args) {
+    const Factory = await ethers.getContractFactory(factoryName)
+    const contract = await Factory.deploy(...args)
+    await contract.deployed()
+    console.log(factoryName + " address: ", contract.address)
 
-    await delay(20000)
+    await delay(30000)
     try {
         await hre.run("verify:verify", {
-            address: gcd.address,
+            address: contract.address,
             network: hre.network,
-            constructorArguments: [
-                parametersAddr
-            ]
+            constructorArguments: args
         });
     } catch (error) {
         console.error(error);
     }
+    return contract
+}
+
+async function deployBaseOfCore() {
+    // GCD
+    const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    const gcd = await deploy("GCD", [parametersAddr])
+    config.gcd = gcd.address
 
     const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
     
     // Parameters
-    const ParamsFactory = await ethers.getContractFactory("VaultParameters")
-    const parameters = await ParamsFactory.deploy(
+    const parameters = await deploy("VaultParameters", [
         vaultAddr,
         deployer.address // Multisig
-    )
-    await parameters.deployed()
-    console.log("VaultParameters address: ", parameters.address)
+    ])
     config.vaultParams = parameters.address
 
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: parameters.address,
-            network: hre.network,
-            constructorArguments: [
-                vaultAddr,
-                deployer.address // Multisig
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
-
     // Vault
-    const VaultFactory = await ethers.getContractFactory("Vault")
-    const vault = await VaultFactory.deploy(
+    const vault = await deploy("Vault", [
         parameters.address,
-        gtonAddress,
+        config.gtonAddress,
         gcd.address,
-        wethAddress
-    )
-    await vault.deployed()
-    console.log("Vault address: ", vault.address)
+        config.wethAddress
+    ])
     config.vault = vault.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: vault.address,
-            network: hre.network,
-            constructorArguments: [
-                parameters.address,
-                gtonAddress,
-                gcd.address,
-                wethAddress
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployOracleRegistry() {
     console.log("deployOracleRegistry")
     if (config.oracleRegistry != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("OracleRegistry")
-    const contract = await Factory.deploy(
+    const contract = await deploy("OracleRegistry", [
         config.vaultParams,
         config.wethAddress
-    )
-    await contract.deployed()
-    console.log("OracleRegistry address: ", contract.address)
+    ])
     config.oracleRegistry = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                config.vaultParams,
-                config.wethAddress
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployCollateralRegistry() {
     console.log("deployCollateralRegistry")
     if (config.collateralRegistry != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("CollateralRegistry")
-    const contract = await Factory.deploy(
+    const contract = await deploy("CollateralRegistry", [
         config.vaultParams,
         [config.gtonAddress]
-    )
-    await contract.deployed()
-    console.log("CollateralRegistry address: ", contract.address)
+    ])
     config.collateralRegistry = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                config.vaultParams,
-                [config.gtonAddress]
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployCDPRegistry() {
     console.log("deployCDPRegistry")
     if (config.cdpRegistry != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("CDPRegistry")
-    const contract = await Factory.deploy(
+    const contract = await deploy("CDPRegistry", [
         config.vault,
         config.collateralRegistry
-    )
-    await contract.deployed()
-    console.log("CDPRegistry address: ", contract.address)
+    ])
     config.cdpRegistry = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                config.vault,
-                config.collateralRegistry
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployVaultManagerParameters() {
     console.log("deployVaultManagerParameters")
     if (config.vaultManagerParameters != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("VaultManagerParameters")
-    const contract = await Factory.deploy(
+    const contract = await deploy("VaultManagerParameters", [
         config.vaultParams
-    )
-    await contract.deployed()
-    console.log("VaultManagerParameters address: ", contract.address)
+    ])
     config.vaultManagerParameters = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                config.vaultParams
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployCDPManager01() {
     console.log("deployCDPManager01")
     if (config.cdpManager01 != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("CDPManager01")
-    const contract = await Factory.deploy(
+    const contract = await deploy("CDPManager01", [
         config.vaultManagerParameters,
         config.oracleRegistry,
         config.cdpRegistry
-    )
-    await contract.deployed()
-    console.log("CDPManager01 address: ", contract.address)
+    ])
     config.cdpManager01 = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                config.vaultManagerParameters,
-                config.oracleRegistry,
-                config.cdpRegistry
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function setVaultManagerParametersAsManagerOfVaultParams() {
@@ -369,30 +271,12 @@ async function deployMockAggregatorWethUSD() {
     const price = 178954000000
     const decimals = 8
 
-    const Factory = await ethers.getContractFactory("MockAggregator")
-    const contract = await Factory.deploy(
+    const contract = await deploy("MockAggregator", [
         name,
         price,
         decimals
-    )
-    await contract.deployed()
-    console.log("chainlinkETHUSDAddress address: ", contract.address)
+    ])
     config.chainlinkETHUSDAddress = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                name,
-                price,
-                decimals
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployMockAggregatorUSDCUSD() {
@@ -402,65 +286,26 @@ async function deployMockAggregatorUSDCUSD() {
     const price = 100000000
     const decimals = 8
 
-    const Factory = await ethers.getContractFactory("MockAggregator")
-    const contract = await Factory.deploy(
+    const contract = await deploy("MockAggregator", [
         name,
         price,
         decimals
-    )
-    await contract.deployed()
-    console.log("chainlinkUSDCUSDAddress address: ", contract.address)
+    ])
     config.chainlinkUSDCUSDAddress = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                name,
-                price,
-                decimals
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function deployChainlinkedOracleMainAsset() {
     console.log("deployChainlinkedOracleMainAsset")
     if (config.chainlinkedOracleMainAsset != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("ChainlinkedOracleMainAsset")
-    const contract = await Factory.deploy(
+    const contract = await deploy("ChainlinkedOracleMainAsset", [
         [config.wethAddress], // tokenAddresses1 - usd
         [config.chainlinkETHUSDAddress], // _usdAggregators
         [], // tokenAddresses2 - eth
         [], // _ethAggregators
         config.wethAddress, // weth
         config.vaultParams, // VaultParameters
-    )
-    await contract.deployed()
-    console.log("ChainlinkedOracleMainAsset address: ", contract.address)
+    ])
     config.chainlinkedOracleMainAsset = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-                [config.wethAddress], // tokenAddresses1 - usd
-                [config.chainlinkETHUSDAddress], // _usdAggregators
-                [], // tokenAddresses2 - eth
-                [], // _ethAggregators
-                config.wethAddress, // weth
-                config.vaultParams, // VaultParameters
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function addChainkinkedOracleToRegistry() {
@@ -475,26 +320,11 @@ async function addChainkinkedOracleToRegistry() {
 
 async function deployUniV3Oracle() {
     console.log("deployUniV3Oracle")
-    throw "Don't forget to set VaultParameters & defaultQuoteAsset in contract code"
+    // throw "Don't forget to set VaultParameters & defaultQuoteAsset in contract code"
     if (config.uniV3Oracle != "") { console.log("Already deployed"); return }
-    const Factory = await ethers.getContractFactory("UniswapV3OracleGCD") // No arguments
-    const contract = await Factory.deploy(
-    )
-    await contract.deployed()
-    console.log("UniswapV3Oracle address: ", contract.address)
+    const contract = await deploy("UniswapV3OracleGCD", [
+    ])
     config.uniV3Oracle = contract.address
-
-    await delay(20000)
-    try {
-        await hre.run("verify:verify", {
-            address: contract.address,
-            network: hre.network,
-            constructorArguments: [
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function addUniV3OracleToRegistry() {

@@ -3,7 +3,7 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.15;
 
 interface ICurveRegistry {
     function get_pool_from_lp_token(address) external view returns (address);

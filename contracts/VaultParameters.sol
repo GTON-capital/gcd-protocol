@@ -3,9 +3,9 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-
+import "./helpers/Initializable.sol";
 
 /**
  * @title Auth
@@ -38,8 +38,6 @@ contract Auth {
         _;
     }
 }
-
-
 
 /**
  * @title VaultParameters

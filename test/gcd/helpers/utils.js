@@ -146,7 +146,7 @@ module.exports = (context, mode) => {
 
 	const deploy = async () => {
 		context.weth = await WETH.new();
-    context.foundation = await FoundationMock.new();
+    	context.foundation = await FoundationMock.new();
 		context.mainCollateral = await DummyToken.new("STAKE clone", "STAKE", 18, ether('1000000'));
 
 		const uniswapFactoryAddr = await deployContractBytecode(UniswapV2FactoryDeployCode, context.deployer, web3);

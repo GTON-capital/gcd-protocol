@@ -3,11 +3,10 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
 import "../VaultParameters.sol";
 import "../interfaces/IForceTransferAssetStore.sol";
-
 
 /**
  * @title ForceTransferAssetStore

@@ -3,9 +3,9 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-interface MockIUniswapV2Factory {
+interface UniswapV2FactoryI {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     function getPair(address tokenA, address tokenB) external view returns (address pair);

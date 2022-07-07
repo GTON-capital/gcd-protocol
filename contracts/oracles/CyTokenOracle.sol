@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: bsl-1.1
 
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-import "../helpers/SafeMath.sol";
 import "../helpers/ERC20Like.sol";
 import "../interfaces/IcyToken.sol";
 import "../interfaces/IOracleUsd.sol";
@@ -17,7 +16,6 @@ import "../VaultParameters.sol";
  **/
 
 contract CyTokenOracle is IOracleUsd, Auth  {
-    using SafeMath for uint;
 
     uint constant expScale = 1e18;
 
@@ -60,7 +58,7 @@ contract CyTokenOracle is IOracleUsd, Auth  {
         uint _exchangeRateStored = IcyToken(bearing).exchangeRateStored();
         uint _totalSupply = ERC20Like(bearing).totalSupply();
         require(amount <= _totalSupply, "GCD Protocol: AMOUNT_EXCEEDS_SUPPLY");
-        return (_underlying, amount.mul(_exchangeRateStored).div(expScale));
+        return (_underlying, amount * _exchangeRateStored / expScale);
     }
 
 }

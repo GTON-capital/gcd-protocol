@@ -5,7 +5,6 @@
 */
 pragma solidity 0.7.6;
 
-
 /**
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error

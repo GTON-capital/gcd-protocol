@@ -3,7 +3,7 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
 import '../interfaces/IOracleRegistry.sol';
 import '../interfaces/IVault.sol';
@@ -15,13 +15,11 @@ import '../interfaces/IForceTransferAssetStore.sol';
 import '../interfaces/IFoundation.sol';
 
 import '../helpers/ReentrancyGuard.sol';
-import '../helpers/SafeMath.sol';
 
 /**
  * @title LiquidationAuction02
  **/
 contract LiquidationAuction02 is ReentrancyGuard {
-    using SafeMath for uint;
 
     IVault public immutable vault;
     IVaultManagerParameters public immutable vaultManagerParameters;
@@ -66,10 +64,10 @@ contract LiquidationAuction02 is ReentrancyGuard {
     function buyout(address asset, address owner) public nonReentrant checkpoint(asset, owner) {
         require(vault.liquidationBlock(asset, owner) != 0, "GCD Protocol: LIQUIDATION_NOT_TRIGGERED");
         uint startingPrice = vault.liquidationPrice(asset, owner);
-        uint blocksPast = block.number.sub(vault.liquidationBlock(asset, owner));
+        uint blocksPast = block.number - vault.liquidationBlock(asset, owner);
         uint depreciationPeriod = vaultManagerParameters.devaluationPeriod(asset);
         uint debt = vault.getTotalDebt(asset, owner);
-        uint penalty = debt.mul(vault.liquidationFee(asset, owner)).div(DENOMINATOR_1E2);
+        uint penalty = debt * vault.liquidationFee(asset, owner) / DENOMINATOR_1E2;
         uint collateralInPosition = vault.collaterals(asset, owner);
 
         uint collateralToLiquidator;
@@ -80,14 +78,14 @@ contract LiquidationAuction02 is ReentrancyGuard {
             depreciationPeriod,
             blocksPast,
             startingPrice,
-            debt.add(penalty),
+            debt + penalty,
             collateralInPosition
         );
 
         // ensure that at least 1 unit of token is transferred to cdp owner
         if (collateralToOwner == 0 && forceTransferAssetStore.shouldForceTransfer(asset)) {
             collateralToOwner = 1;
-            collateralToLiquidator = collateralToLiquidator.sub(1);
+            collateralToLiquidator = collateralToLiquidator - 1;
         }
 
         _liquidate(
@@ -143,11 +141,11 @@ contract LiquidationAuction02 is ReentrancyGuard {
         uint price
     ) {
         if (depreciationPeriod > blocksPast) {
-            uint valuation = depreciationPeriod.sub(blocksPast);
-            uint collateralPrice = startingPrice.mul(valuation).div(depreciationPeriod);
+            uint valuation = depreciationPeriod - blocksPast;
+            uint collateralPrice = startingPrice * valuation / depreciationPeriod;
             if (collateralPrice > debtWithPenalty) {
-                collateralToBuyer = collateralInPosition.mul(debtWithPenalty).div(collateralPrice);
-                collateralToOwner = collateralInPosition.sub(collateralToBuyer);
+                collateralToBuyer = collateralInPosition * debtWithPenalty / collateralPrice;
+                collateralToOwner = collateralInPosition - collateralToBuyer;
                 price = debtWithPenalty;
             } else {
                 collateralToBuyer = collateralInPosition;

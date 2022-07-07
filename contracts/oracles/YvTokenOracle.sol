@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: bsl-1.1
 
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-import "../helpers/SafeMath.sol";
 import "../helpers/ERC20Like.sol";
 import "../interfaces/IyvToken.sol";
 import "../interfaces/IOracleUsd.sol";
@@ -17,7 +16,6 @@ import "../VaultParameters.sol";
  **/
 
 contract YvTokenOracle is IOracleUsd, Auth  {
-    using SafeMath for uint;
 
     IOracleRegistry public immutable oracleRegistry;
 
@@ -42,7 +40,7 @@ contract YvTokenOracle is IOracleUsd, Auth  {
         require(amount <= _totalSupply, "GCD Protocol: AMOUNT_EXCEEDS_SUPPLY");
         uint _pricePerShare = IyvToken(bearing).pricePerShare();
         uint _decimals = IyvToken(bearing).decimals();
-        return (_underlying, amount.mul(_pricePerShare).div(10**_decimals));
+        return (_underlying, amount * _pricePerShare / (10**_decimals));
     }
 
 }

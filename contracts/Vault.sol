@@ -3,9 +3,8 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-import "./helpers/SafeMath.sol";
 import "./VaultParameters.sol";
 import "./helpers/TransferHelper.sol";
 import "./GCD.sol";
@@ -19,7 +18,6 @@ import "./interfaces/IWETH.sol";
  * @notice Vault will not be changed/upgraded after initial deployment for the current stablecoin version
  **/
 contract Vault is Auth {
-    using SafeMath for uint;
 
     // COL token address
     address public immutable col;
@@ -94,7 +92,7 @@ contract Vault is Auth {
 
         // calculate fee using stored stability fee
         uint debtWithFee = getTotalDebt(asset, user);
-        tokenDebts[asset] = tokenDebts[asset].sub(debts[asset][user]).add(debtWithFee);
+        tokenDebts[asset] = tokenDebts[asset] - debts[asset][user] + debtWithFee;
         debts[asset][user] = debtWithFee;
 
         stabilityFee[asset][user] = vaultParameters.stabilityFee(asset);
@@ -133,7 +131,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to deposit
      **/
     function depositMain(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        collaterals[asset][user] = collaterals[asset][user].add(amount);
+        collaterals[asset][user] = collaterals[asset][user] + amount;
         TransferHelper.safeTransferFrom(asset, user, address(this), amount);
     }
 
@@ -143,7 +141,7 @@ contract Vault is Auth {
      **/
     function depositEth(address user) external payable notLiquidating(weth, user) {
         IWETH(weth).deposit{value: msg.value}();
-        collaterals[weth][user] = collaterals[weth][user].add(msg.value);
+        collaterals[weth][user] = collaterals[weth][user] + msg.value;
     }
 
     /**
@@ -153,7 +151,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to withdraw
      **/
     function withdrawMain(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        collaterals[asset][user] = collaterals[asset][user].sub(amount);
+        collaterals[asset][user] = collaterals[asset][user] - amount;
         TransferHelper.safeTransfer(asset, user, amount);
     }
 
@@ -163,7 +161,7 @@ contract Vault is Auth {
      * @param amount The amount of ETH to withdraw
      **/
     function withdrawEth(address payable user, uint amount) external hasVaultAccess notLiquidating(weth, user) {
-        collaterals[weth][user] = collaterals[weth][user].sub(amount);
+        collaterals[weth][user] = collaterals[weth][user] - amount;
         IWETH(weth).withdraw(amount);
         TransferHelper.safeTransferETH(user, amount);
     }
@@ -176,7 +174,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to deposit
      **/
     function depositCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user].add(amount);
+        colToken[asset][user] = colToken[asset][user] + amount;
         TransferHelper.safeTransferFrom(col, user, address(this), amount);
     }
 
@@ -187,7 +185,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to withdraw
      **/
     function withdrawCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user].sub(amount);
+        colToken[asset][user] = colToken[asset][user] - amount;
         TransferHelper.safeTransfer(col, user, amount);
     }
 
@@ -209,8 +207,8 @@ contract Vault is Auth {
     {
         require(vaultParameters.isOracleTypeEnabled(oracleType[asset][user], asset), "GCD Protocol: WRONG_ORACLE_TYPE");
         update(asset, user);
-        debts[asset][user] = debts[asset][user].add(amount);
-        tokenDebts[asset] = tokenDebts[asset].add(amount);
+        debts[asset][user] = debts[asset][user] + amount;
+        tokenDebts[asset] = tokenDebts[asset] + amount;
 
         // check GCD limit for token
         require(tokenDebts[asset] <= vaultParameters.tokenDebtLimit(asset), "GCD Protocol: ASSET_DEBT_LIMIT");
@@ -238,8 +236,8 @@ contract Vault is Auth {
     returns(uint)
     {
         uint debt = debts[asset][user];
-        debts[asset][user] = debt.sub(amount);
-        tokenDebts[asset] = tokenDebts[asset].sub(amount);
+        debts[asset][user] = debt - amount;
+        tokenDebts[asset] = tokenDebts[asset] - amount;
         GCD(gcd).burn(user, amount);
 
         return debts[asset][user];
@@ -311,10 +309,10 @@ contract Vault is Auth {
         require(liquidationBlock[asset][positionOwner] != 0, "GCD Protocol: NOT_TRIGGERED_LIQUIDATION");
 
         uint mainAssetInPosition = collaterals[asset][positionOwner];
-        uint mainAssetToFoundation = mainAssetInPosition.sub(mainAssetToLiquidator).sub(mainAssetToPositionOwner);
+        uint mainAssetToFoundation = mainAssetInPosition - mainAssetToLiquidator - mainAssetToPositionOwner;
 
         uint colInPosition = colToken[asset][positionOwner];
-        uint colToFoundation = colInPosition.sub(colToLiquidator).sub(colToPositionOwner);
+        uint colToFoundation = colInPosition - colToLiquidator - colToPositionOwner;
 
         delete liquidationPrice[asset][positionOwner];
         delete liquidationBlock[asset][positionOwner];
@@ -329,7 +327,7 @@ contract Vault is Auth {
             if (penalty != 0) {
                 TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), penalty);
             }
-            GCD(gcd).burn(liquidator, repayment.sub(penalty));
+            GCD(gcd).burn(liquidator, repayment - penalty);
         } else {
             if (repayment != 0) {
                 TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), repayment);
@@ -384,7 +382,7 @@ contract Vault is Auth {
         uint debt = debts[asset][user];
         if (liquidationBlock[asset][user] != 0) return debt;
         uint fee = calculateFee(asset, user, debt);
-        return debt.add(fee);
+        return debt + fee;
     }
 
     /**
@@ -396,8 +394,8 @@ contract Vault is Auth {
      **/
     function calculateFee(address asset, address user, uint amount) public view returns (uint) {
         uint sFeePercent = stabilityFee[asset][user];
-        uint timePast = block.timestamp.sub(lastUpdate[asset][user]);
+        uint timePast = block.timestamp - lastUpdate[asset][user];
 
-        return amount.mul(sFeePercent).mul(timePast).div(365 days).div(DENOMINATOR_1E5);
+        return amount * sFeePercent * timePast/ (365 days) / DENOMINATOR_1E5;
     }
 }

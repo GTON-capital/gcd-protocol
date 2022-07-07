@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: bsl-1.1
 
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-import "../helpers/SafeMath.sol";
 import "../helpers/ERC20Like.sol";
 import "../interfaces/IWstEthToken.sol";
 import "../interfaces/IStEthPriceFeed.sol";
@@ -17,7 +16,6 @@ import "../VaultParameters.sol";
  **/
 
 contract WstEthOracle is IOracleUsd, Auth  {
-    using SafeMath for uint;
 
     IOracleRegistry public immutable oracleRegistry;
 
@@ -77,7 +75,7 @@ contract WstEthOracle is IOracleUsd, Auth  {
         _isSafePrice = _poolPriceStEth <= 10**18 && !has_changed_unsafely(_poolPriceStEth, _oraclePriceStEth);
         require(_isSafePrice == true, "GCD Protocol: STETH_PRICE_IS_NOT_SAFE");
         uint _decimals = getDecimalsStEth();
-        uint underlyingAmount = _qtyStEthByWstEth.mul(_poolPriceStEth).div(10**_decimals);
+        uint underlyingAmount = _qtyStEthByWstEth * _poolPriceStEth / (10**_decimals);
         IOracleUsd _oracleForUnderlying = IOracleUsd(oracleRegistry.oracleByAsset(addressWETH));
         require(address(_oracleForUnderlying) != address(0), "GCD Protocol: ORACLE_NOT_FOUND");
         return _oracleForUnderlying.assetToUsd(addressWETH, underlyingAmount);

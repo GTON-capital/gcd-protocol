@@ -3,12 +3,10 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma solidity ^0.8.15;
 
 import "../oracles/ChainlinkedKeydonixOracleMainAssetAbstract.sol";
 import "../helpers/ERC20Like.sol";
-import "../helpers/SafeMath.sol";
 import "../interfaces/IAggregator.sol";
 import "../helpers/IUniswapV2Factory.sol";
 
@@ -17,16 +15,15 @@ import "../helpers/IUniswapV2Factory.sol";
  * @dev Calculates the USD price of desired tokens
  **/
 contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstract {
-    using SafeMath for uint;
 
     uint public constant ETH_USD_DENOMINATOR = 100000000;
 
     IAggregator public immutable ethUsdChainlinkAggregator;
 
-    MockIUniswapV2Factory public immutable uniswapFactory;
+    UniswapV2FactoryI public immutable uniswapFactory;
 
     constructor(
-        MockIUniswapV2Factory uniFactory,
+        UniswapV2FactoryI uniFactory,
         address weth,
         IAggregator chainlinkAggregator
     )
@@ -56,7 +53,7 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
         // revert if there is no liquidity
         require(tokenReserve != 0, "GCD Protocol: UNISWAP_EMPTY_POOL");
 
-        return ethToUsd(assetToEth(asset, amount, proofData)).div(tokenReserve);
+        return ethToUsd(assetToEth(asset, amount, proofData)) / tokenReserve;
     }
 
     // override with mock; only for tests
@@ -70,7 +67,7 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
         // WETH reserve of {Token}/WETH pool
         uint wethReserve = ERC20Like(WETH).balanceOf(uniswapPair);
 
-        return amount.mul(wethReserve).mul(Q112);
+        return amount * wethReserve * Q112;
     }
 
     /**
@@ -80,6 +77,6 @@ contract KeydonixOracleMainAsset_Mock is ChainlinkedKeydonixOracleMainAssetAbstr
     function ethToUsd(uint ethAmount) public override view returns (uint) {
         require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "GCD Protocol: OUTDATED_CHAINLINK_PRICE");
         uint ethUsdPrice = uint(ethUsdChainlinkAggregator.latestAnswer());
-        return ethAmount.mul(ethUsdPrice).div(ETH_USD_DENOMINATOR);
+        return ethAmount * ethUsdPrice / ETH_USD_DENOMINATOR;
     }
 }

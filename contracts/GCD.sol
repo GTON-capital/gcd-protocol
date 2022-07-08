@@ -6,13 +6,14 @@
 pragma solidity ^0.8.15;
 
 import "./VaultParameters.sol";
-// import "./helpers/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 
 /**
  * @title GCD token implementation
  * @dev ERC20 token
  **/
-contract GCD is Auth {
+contract GCD is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // name of the token
     string public constant name = "GCD Stablecoin";
@@ -48,7 +49,14 @@ contract GCD is Auth {
     /**
       * @param _parameters The address of system parameters contract
      **/
-    constructor(address _parameters) Auth(_parameters) {}
+    function initialize(address _parameters) public initializer {
+        initializeAuth(_parameters);
+    }
+
+    /**
+      * Restricted upgrades function
+     **/
+    function _authorizeUpgrade(address) internal override onlyManager {}
 
     /**
       * @notice Only Vault can mint GCD

@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const upgrades  = require("hardhat");
+const { upgrades } = require("hardhat");
 const { ethers } = hre;
 
 const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
@@ -165,26 +165,46 @@ async function deploy(factoryName, args) {
     return contract
 }
 
+async function deployInitializable(factoryName, args) {
+    const Factory = await ethers.getContractFactory(factoryName)
+    const proxy = await upgrades.deployProxy(Factory, args, { initializer: 'initialize' });
+    await proxy.deployed()
+    console.log(factoryName + " proxy address: ", proxy.address)
+
+    const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxy.address)
+    console.log(factoryName + " implementation address: ", implementationAddress)
+
+    await delay(30000)
+    try {
+        await hre.run("verify:verify", {
+            address: implementationAddress,
+            network: hre.network
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    return proxy
+}
+
 async function deployBaseOfCore() {
     // GCD
     const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
-    const gcd = await deploy("GCD", [parametersAddr])
+    const gcd = await deployInitializable("GCD", [parametersAddr])
     config.gcd = gcd.address
 
-    const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
-    
     // Parameters
-    const parameters = await deploy("VaultParameters", [
+    const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    const parameters = await deployInitializable("VaultParameters", [
         vaultAddr,
         deployer.address // Multisig
     ])
     config.vaultParams = parameters.address
 
     // Vault
-    const vault = await deploy("Vault", [
-        parameters.address,
+    const vault = await deployInitializable("Vault", [
+        config.vaultParams,
         config.gtonAddress,
-        gcd.address,
+        config.gcd,
         config.wethAddress
     ])
     config.vault = vault.address

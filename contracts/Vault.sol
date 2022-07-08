@@ -9,6 +9,8 @@ import "./VaultParameters.sol";
 import "./helpers/TransferHelper.sol";
 import "./GCD.sol";
 import "./interfaces/IWETH.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 
 /**
  * @title Vault
@@ -17,20 +19,20 @@ import "./interfaces/IWETH.sol";
  * @notice Only Vault can manage supply of GCD token
  * @notice Vault will not be changed/upgraded after initial deployment for the current stablecoin version
  **/
-contract Vault is Auth {
+contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // COL token address
-    address public immutable col;
+    address public col;
 
     // WETH token address
-    address payable public immutable weth;
+    address payable public weth;
 
     uint public constant DENOMINATOR_1E5 = 1e5;
 
     uint public constant DENOMINATOR_1E2 = 1e2;
 
     // GCD token address
-    address public immutable gcd;
+    address public gcd;
 
     // collaterals whitelist
     mapping(address => mapping(address => uint)) public collaterals;
@@ -72,11 +74,22 @@ contract Vault is Auth {
      * @param _col COL token address
      * @param _gcd GCD token address
      **/
-    constructor(address _parameters, address _col, address _gcd, address payable _weth) Auth(_parameters) {
+    function initialize(
+        address _parameters, 
+        address _col, 
+        address _gcd, 
+        address payable _weth
+    ) public initializer {
+        initializeAuth(_parameters);
         col = _col;
         gcd = _gcd;
         weth = _weth;
     }
+
+    /**
+      * Restricted upgrades function
+     **/
+    function _authorizeUpgrade(address) internal override onlyManager {}
 
     // only accept ETH via fallback from the WETH contract
     receive() external payable {

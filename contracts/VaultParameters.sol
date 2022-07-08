@@ -5,7 +5,8 @@
 */
 pragma solidity ^0.8.15;
 
-import "./helpers/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 
 /**
  * @title Auth
@@ -39,10 +40,38 @@ contract Auth {
     }
 }
 
+contract AuthInitializable {
+
+    // address of the the contract with vault parameters
+    VaultParameters public vaultParameters;
+
+    function initializeAuth(address _parameters) public {
+        vaultParameters = VaultParameters(_parameters);
+    }
+
+    // ensures tx's sender is a manager
+    modifier onlyManager() {
+        require(vaultParameters.isManager(msg.sender), "GCD Protocol: AUTH_FAILED");
+        _;
+    }
+
+    // ensures tx's sender is able to modify the Vault
+    modifier hasVaultAccess() {
+        require(vaultParameters.canModifyVault(msg.sender), "GCD Protocol: AUTH_FAILED");
+        _;
+    }
+
+    // ensures tx's sender is the Vault
+    modifier onlyVault() {
+        require(msg.sender == vaultParameters.vault(), "GCD Protocol: AUTH_FAILED");
+        _;
+    }
+}
+
 /**
  * @title VaultParameters
  **/
-contract VaultParameters is Auth {
+contract VaultParameters is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // map token to stability fee percentage; 3 decimals
     mapping(address => uint) public stabilityFee;
@@ -74,7 +103,8 @@ contract VaultParameters is Auth {
      * hashed with Keccak-256.
      * Therefore, the Vault address can be pre-computed and passed as an argument before deployment.
     **/
-    constructor(address payable _vault, address _foundation) Auth(address(this)) {
+    function initialize(address payable _vault, address _foundation) public initializer {
+        initializeAuth(address(this));
         require(_vault != address(0), "GCD Protocol: ZERO_ADDRESS");
         require(_foundation != address(0), "GCD Protocol: ZERO_ADDRESS");
 
@@ -82,6 +112,11 @@ contract VaultParameters is Auth {
         vault = _vault;
         foundation = _foundation;
     }
+
+    /**
+      * Restricted upgrades function
+     **/
+    function _authorizeUpgrade(address) internal override onlyManager {}
 
     /**
      * @notice Only manager is able to call this function

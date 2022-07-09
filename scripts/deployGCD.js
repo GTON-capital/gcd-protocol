@@ -94,7 +94,7 @@ var deployer;
 
 async function main() {
     deployer = await getDeployer()
-
+    
     await deployBaseOfCore()
     await deployAndSetupRestOfTheCore()
     await deployAndSetupOracles()
@@ -165,9 +165,36 @@ async function deploy(factoryName, args) {
     return contract
 }
 
-async function deployInitializable(factoryName, args) {
+async function deployUpgradable(factoryName, args) {
     const Factory = await ethers.getContractFactory(factoryName)
-    const proxy = await upgrades.deployProxy(Factory, args, { initializer: 'initialize' });
+    const proxy = await upgrades.deployProxy(Factory, args, { 
+        initializer: 'initialize', 
+        kind: 'uups' 
+    });
+    await proxy.deployed()
+    console.log(factoryName + " proxy address: ", proxy.address)
+
+    const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxy.address)
+    console.log(factoryName + " implementation address: ", implementationAddress)
+
+    await delay(30000)
+    try {
+        await hre.run("verify:verify", {
+            address: implementationAddress,
+            network: hre.network
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    return proxy
+}
+
+async function upgradeContract(address, factoryName, args) {
+    const Factory = await ethers.getContractFactory(factoryName)
+    const proxy = await upgrades.upgradeProxy(address, Factory, args, { 
+        initializer: 'initialize', 
+        kind: 'uups' 
+    });
     await proxy.deployed()
     console.log(factoryName + " proxy address: ", proxy.address)
 
@@ -189,25 +216,45 @@ async function deployInitializable(factoryName, args) {
 async function deployBaseOfCore() {
     // GCD
     const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
-    const gcd = await deployInitializable("GCD", [parametersAddr])
+    const gcd = await deployUpgradable("GCD", [parametersAddr])
     config.gcd = gcd.address
 
     // Parameters
     const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
-    const parameters = await deployInitializable("VaultParameters", [
+    const parameters = await deployUpgradable("VaultParameters", [
         vaultAddr,
         deployer.address // Multisig
     ])
     config.vaultParams = parameters.address
 
     // Vault
-    const vault = await deployInitializable("Vault", [
+    const vault = await deployUpgradable("Vault", [
         config.vaultParams,
         config.gtonAddress,
         config.gcd,
         config.wethAddress
     ])
     config.vault = vault.address
+}
+
+async function upgradeGCD() {
+    const gcd = await upgradeContract(config.gcd, "GCD", [config.vaultParams])
+}
+
+async function upgradeVaultParameters() {
+    const parameters = await upgradeContract(config.vaultParams, "VaultParameters", [
+        config.vault,
+        deployer.address // Multisig
+    ])
+}
+
+async function upgradeVault() {
+    const vault = await upgradeContract(config.vault, "Vault", [
+        config.vaultParams,
+        config.gtonAddress,
+        config.gcd,
+        config.wethAddress
+    ])
 }
 
 async function deployOracleRegistry() {

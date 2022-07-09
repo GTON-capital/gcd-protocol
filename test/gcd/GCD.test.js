@@ -7,9 +7,11 @@ const { expect } = require('chai');
 
 contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
     beforeEach(async function () {
-        const parameters = await Parameters.new(deployer, deployer);
+        const parameters = await Parameters.new();
+        await parameters.initialize(deployer, deployer);
         await parameters.setVaultAccess(deployer, true);
-        this.token = await GCD.new(parameters.address);
+        this.token = await GCD.new();
+        await this.token.initialize(parameters.address)
         await this.token.mint(owner, new BN(100));
     });
 

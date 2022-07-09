@@ -19,7 +19,8 @@ contract('Parameters', function([
 	// deploy & initial settings
 	beforeEach(async function() {
 		this.utils = utils(this, 'keydonixMainAsset');
-		this.vaultParameters = await VaultParameters.new(secondAccount, deployer);
+		this.vaultParameters = await VaultParameters.new();
+		await this.vaultParameters.initialize(secondAccount, deployer);
 		this.vaultManagerParameters = await VaultManagerParameters.new(this.vaultParameters.address);
 		await this.vaultParameters.setManager(this.vaultManagerParameters.address, true);
 	});

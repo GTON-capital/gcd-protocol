@@ -22,7 +22,8 @@ contract('CollateralRegistry', function([
 ]) {
 	// deploy & initial settings
 	beforeEach(async function() {
-		this.vaultParameters = await VaultParameters.new(deployer, deployer);
+		this.vaultParameters = await VaultParameters.new();
+		await this.vaultParameters.initialize(deployer, deployer)
 		this.oracleRegistry = await OracleRegistry.new(this.vaultParameters.address, weth)
 	});
 

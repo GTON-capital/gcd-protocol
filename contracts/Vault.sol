@@ -21,9 +21,6 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
  **/
 contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
-    // COL token address
-    address public col;
-
     // WETH token address
     address payable public weth;
 
@@ -36,9 +33,6 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // collaterals whitelist
     mapping(address => mapping(address => uint)) public collaterals;
-
-    // COL token collaterals
-    mapping(address => mapping(address => uint)) public colToken;
 
     // user debts
     mapping(address => mapping(address => uint)) public debts;
@@ -71,17 +65,14 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
     /**
      * @param _parameters The address of the system parameters
-     * @param _col COL token address
      * @param _gcd GCD token address
      **/
     function initialize(
         address _parameters, 
-        address _col, 
         address _gcd, 
         address payable _weth
     ) public initializer {
         initializeAuth(_parameters);
-        col = _col;
         gcd = _gcd;
         weth = _weth;
     }
@@ -180,29 +171,6 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
     }
 
     /**
-     * @notice Tokens must be pre-approved
-     * @dev Adds COL token to a position
-     * @param asset The address of the main collateral token
-     * @param user The address of a position's owner
-     * @param amount The amount of tokens to deposit
-     **/
-    function depositCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user] + amount;
-        TransferHelper.safeTransferFrom(col, user, address(this), amount);
-    }
-
-    /**
-     * @dev Withdraws COL token from a position
-     * @param asset The address of the main collateral token
-     * @param user The address of a position's owner
-     * @param amount The amount of tokens to withdraw
-     **/
-    function withdrawCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user] - amount;
-        TransferHelper.safeTransfer(col, user, amount);
-    }
-
-    /**
      * @dev Increases position's debt and mints GCD token
      * @param asset The address of the main collateral token
      * @param user The address of a position's owner
@@ -298,9 +266,7 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
      * @param asset The address of the main collateral token
      * @param positionOwner The address of a position's owner
      * @param mainAssetToLiquidator The amount of main asset to send to a liquidator
-     * @param colToLiquidator The amount of COL to send to a liquidator
      * @param mainAssetToPositionOwner The amount of main asset to send to a position owner
-     * @param colToPositionOwner The amount of COL to send to a position owner
      * @param repayment The repayment in GCD
      * @param penalty The liquidation penalty in GCD
      * @param liquidator The address of a liquidator
@@ -309,9 +275,7 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
         address asset,
         address positionOwner,
         uint mainAssetToLiquidator,
-        uint colToLiquidator,
         uint mainAssetToPositionOwner,
-        uint colToPositionOwner,
         uint repayment,
         uint penalty,
         address liquidator
@@ -324,14 +288,10 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
         uint mainAssetInPosition = collaterals[asset][positionOwner];
         uint mainAssetToFoundation = mainAssetInPosition - mainAssetToLiquidator - mainAssetToPositionOwner;
 
-        uint colInPosition = colToken[asset][positionOwner];
-        uint colToFoundation = colInPosition - colToLiquidator - colToPositionOwner;
-
         delete liquidationPrice[asset][positionOwner];
         delete liquidationBlock[asset][positionOwner];
         delete debts[asset][positionOwner];
         delete collaterals[asset][positionOwner];
-        delete colToken[asset][positionOwner];
 
         destroy(asset, positionOwner);
 
@@ -352,25 +312,13 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
             TransferHelper.safeTransfer(asset, liquidator, mainAssetToLiquidator);
         }
 
-        if (colToLiquidator != 0) {
-            TransferHelper.safeTransfer(col, liquidator, colToLiquidator);
-        }
-
         // send the rest of collateral to a position owner
         if (mainAssetToPositionOwner != 0) {
             TransferHelper.safeTransfer(asset, positionOwner, mainAssetToPositionOwner);
         }
 
-        if (colToPositionOwner != 0) {
-            TransferHelper.safeTransfer(col, positionOwner, colToPositionOwner);
-        }
-
         if (mainAssetToFoundation != 0) {
             TransferHelper.safeTransfer(asset, vaultParameters.foundation(), mainAssetToFoundation);
-        }
-
-        if (colToFoundation != 0) {
-            TransferHelper.safeTransfer(col, vaultParameters.foundation(), colToFoundation);
         }
     }
 

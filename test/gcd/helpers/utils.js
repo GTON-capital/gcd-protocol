@@ -172,7 +172,7 @@ module.exports = (context, mode) => {
 		context.vaultParameters = await VaultParameters.new();
 		await context.vaultParameters.initialize(vaultAddr, context.foundation.address);
 		context.vault = await Vault.new();
-		await context.vault.initialize(context.vaultParameters.address, '0x0000000000000000000000000000000000000000', context.gcd.address, context.weth.address);
+		await context.vault.initialize(context.vaultParameters.address, context.gcd.address, context.weth.address);
 
 		let minColPercent, maxColPercent
 		let mainAssetOracleType, poolTokenOracleType

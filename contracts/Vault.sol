@@ -221,7 +221,7 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
         tokenDebts[asset] = tokenDebts[asset] - amount;
         GCD(gcd).burn(user, amount);
 
-        return debts[asset][user];
+        return debts[asset][user]; //!
     }
 
     /**

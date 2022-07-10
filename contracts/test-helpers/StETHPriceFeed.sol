@@ -37,7 +37,7 @@ contract StETHPriceFeed {
 
   function _current_price() internal view returns (uint256 pool_price, bool has_changed_unsafely, uint256 oracle_price) {
     pool_price = IStableSwap(curve_pool_address).get_dy(CURVE_STETH_INDEX, CURVE_ETH_INDEX, 10**18);
-    //oracle_price = IStableSwapStateOracle(stable_swap_oracle_address).stethPrice();
+    oracle_price = IStableSwapStateOracle(stable_swap_oracle_address).stethPrice(); //!
     has_changed_unsafely = _percentage_diff(pool_price, oracle_price) > max_safe_price_difference;
   }
 

@@ -188,7 +188,8 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
     {
         require(vaultParameters.isOracleTypeEnabled(oracleType[asset][user], asset), "GCD Protocol: WRONG_ORACLE_TYPE");
         update(asset, user);
-        debts[asset][user] = debts[asset][user] + amount;
+        uint updatedDebt = debts[asset][user] + amount;
+        debts[asset][user] = updatedDebt;
         tokenDebts[asset] = tokenDebts[asset] + amount;
 
         // check GCD limit for token
@@ -196,7 +197,7 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
         GCD(gcd).mint(user, amount);
 
-        return debts[asset][user];
+        return updatedDebt;
     }
 
     /**
@@ -217,11 +218,12 @@ contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
     returns(uint)
     {
         uint debt = debts[asset][user];
-        debts[asset][user] = debt - amount;
+        uint updatedDebt = debt - amount;
+        debts[asset][user] = updatedDebt;
         tokenDebts[asset] = tokenDebts[asset] - amount;
         GCD(gcd).burn(user, amount);
 
-        return debts[asset][user];
+        return updatedDebt;
     }
 
     /**

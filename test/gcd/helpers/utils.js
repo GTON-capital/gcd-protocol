@@ -174,15 +174,7 @@ module.exports = (context, mode) => {
 		context.vault = await Vault.new();
 		await context.vault.initialize(context.vaultParameters.address, context.gcd.address, context.weth.address);
 
-		let minColPercent, maxColPercent
 		let mainAssetOracleType, poolTokenOracleType
-		if (keydonix) {
-			minColPercent = 3
-			maxColPercent = 5
-		} else {
-			minColPercent = 0
-			maxColPercent = 0
-		}
 
 		context.ethUsd = await ChainlinkAggregator.new(250e8, 8);
 		context.mainUsd = await ChainlinkAggregator.new(2e8, 8);
@@ -477,8 +469,6 @@ module.exports = (context, mode) => {
 			'1000', // devaluation period in blocks
 			ether('100000'), // debt limit
 			[mainAssetOracleType], // enabled oracles
-			minColPercent,
-			maxColPercent,
 		);
 
 		if (keydonix || uniswapKeep3r || sushiswapKeep3r || chainlink) {
@@ -492,8 +482,6 @@ module.exports = (context, mode) => {
 				'1000', // devaluation period in blocks
 				ether('100000'), // debt limit
 				[5], // enabled oracles
-				minColPercent,
-				maxColPercent,
 			);
 		}
 
@@ -508,8 +496,6 @@ module.exports = (context, mode) => {
 				'1000', // devaluation period in blocks
 				ether('100000'), // debt limit
 				[poolTokenOracleType], // enabled oracles
-				minColPercent,
-				maxColPercent,
 			);
 		}
 	};

@@ -12,12 +12,6 @@ import "../VaultParameters.sol";
  **/
 contract VaultManagerParameters is Auth {
 
-    // determines the minimum percentage of COL token part in collateral, 0 decimals
-    mapping(address => uint) public minColPercent;
-
-    // determines the maximum percentage of COL token part in collateral, 0 decimals
-    mapping(address => uint) public maxColPercent;
-
     // map token to initial collateralization ratio; 0 decimals
     mapping(address => uint) public initialCollateralRatio;
 
@@ -44,8 +38,6 @@ contract VaultManagerParameters is Auth {
      * @param devaluationPeriodValue The devaluation period in blocks
      * @param gcdLimit The GCD token issue limit
      * @param oracles The enabled oracles type IDs
-     * @param minColP The min percentage of COL value in position (0 decimals)
-     * @param maxColP The max percentage of COL value in position (0 decimals)
      **/
     function setCollateral(
         address asset,
@@ -56,16 +48,13 @@ contract VaultManagerParameters is Auth {
         uint liquidationDiscountValue,
         uint devaluationPeriodValue,
         uint gcdLimit,
-        uint[] calldata oracles,
-        uint minColP,
-        uint maxColP
+        uint[] calldata oracles
     ) external onlyManager {
         vaultParameters.setCollateral(asset, stabilityFeeValue, liquidationFeeValue, gcdLimit, oracles);
         setInitialCollateralRatio(asset, initialCollateralRatioValue);
         setLiquidationRatio(asset, liquidationRatioValue);
         setDevaluationPeriod(asset, devaluationPeriodValue);
         setLiquidationDiscount(asset, liquidationDiscountValue);
-        setColPartRange(asset, minColP, maxColP);
     }
 
     /**
@@ -110,18 +99,5 @@ contract VaultManagerParameters is Auth {
     function setDevaluationPeriod(address asset, uint newValue) public onlyManager {
         require(newValue != 0, "GCD Protocol: INCORRECT_DEVALUATION_VALUE");
         devaluationPeriod[asset] = newValue;
-    }
-
-    /**
-     * @notice Only manager is able to call this function
-     * @dev Sets the percentage range of the COL token part for specific collateral token
-     * @param asset The address of the main collateral token
-     * @param min The min percentage (0 decimals)
-     * @param max The max percentage (0 decimals)
-     **/
-    function setColPartRange(address asset, uint min, uint max) public onlyManager {
-        require(max <= 100 && min <= max, "GCD Protocol: WRONG_RANGE");
-        minColPercent[asset] = min;
-        maxColPercent[asset] = max;
     }
 }

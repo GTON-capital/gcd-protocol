@@ -1,8 +1,9 @@
 const hre = require("hardhat");
 const { upgrades } = require("hardhat");
 const { ethers } = hre;
-const { 
-    upgradableConfigRopsten 
+const {
+    configEthereum,
+    upgradableConfigRopsten,
 } = require("./config.js");
 
 const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
@@ -48,16 +49,18 @@ async function deployAndSetupOracles() {
     // Setup of oracles
     await addChainkinkedOracleToRegistry()
     await addUniV3OracleToRegistry()
-    await setChainlinkAddressForWETH()
-    await setChainlinkAddressForUSDC()
     await setChainkinkedOracleWeth()
     await setChainkinkedOracleUSDC()
+    // await setChainkinkedOracleWBTC()
     await setUniV3OracleGton()
     // Setting collateral
     // WETH
     await enableOracleTypeForWethOnVaultParams()
     await setWethCollateralOnManagerParameters()
-    // USDC
+    // WBTC
+    // await enableOracleTypeForWBTCOnVaultParams()
+    // await setWBTCCollateralOnManagerParameters()
+    // USDC - not collateral, just need oracle here for GTON
     await enableOracleTypeForUSDCOnVaultParams()
     // GTON
     await enableOracleTypeForGtonOnVaultParams()
@@ -145,7 +148,7 @@ async function deployBaseOfCore() {
     const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
     const parameters = await deployUpgradable("VaultParameters", [
         vaultAddr,
-        deployer.address // Multisig
+        config.feesCollector // Multisig
     ])
     config.vaultParams = parameters.address
 
@@ -165,7 +168,7 @@ async function upgradeGCD() {
 async function upgradeVaultParameters() {
     const parameters = await upgradeContract(config.vaultParams, "VaultParameters", [
         config.vault,
-        deployer.address // Multisig
+        config.feesCollector // Multisig
     ])
 }
 
@@ -286,8 +289,16 @@ async function deployChainlinkedOracleMainAsset() {
     console.log("deployChainlinkedOracleMainAsset")
     if (config.chainlinkedOracleMainAsset != "") { console.log("Already deployed"); return }
     const contract = await deploy("ChainlinkedOracleMainAsset", [
-        [config.wethAddress], // tokenAddresses1 - usd
-        [config.chainlinkETHUSDAddress], // _usdAggregators
+        [
+            config.wethAddress,
+            config.usdcAddress,
+            // config.wbtcAddress,
+        ], // tokenAddresses1 - usd
+        [
+            config.chainlinkETHUSDAddress,
+            config.chainlinkUSDCUSDAddress,
+            // config.chainlinkBTCUSDAddress,
+        ], // _usdAggregators
         [], // tokenAddresses2 - eth
         [], // _ethAggregators
         config.wethAddress, // weth
@@ -345,6 +356,16 @@ async function setChainkinkedOracleUSDC() {
     console.log("Set oracle type for USDC tx: " + tx.hash)
 }
 
+async function setChainkinkedOracleWBTC() {
+    console.log("setChainkinkedOracleWBTC")
+    const Factory = await ethers.getContractFactory("OracleRegistry")
+    const contract = Factory.attach(config.oracleRegistry)
+
+    let tx = await contract.setOracleTypeForAsset(config.wbtcAddress, config.chainlinkBTCUSDAddress)
+    await tx.wait()
+    console.log("Set oracle type for USDC tx: " + tx.hash)
+}
+
 async function setUniV3OracleGton() {
     console.log("setUniV3OracleGton")
     const Factory = await ethers.getContractFactory("OracleRegistry")
@@ -369,8 +390,6 @@ async function setUniV3OracleGton() {
      * @param devaluationPeriodValue The devaluation period in blocks
      * @param gcdLimit The GCD token issue limit
      * @param oracles The enabled oracles type IDs
-     * @param minColP The min percentage of COL value in position (0 decimals)
-     * @param maxColP The max percentage of COL value in position (0 decimals)
      **/
 
  async function setWethCollateralOnManagerParameters() {
@@ -382,20 +401,38 @@ async function setUniV3OracleGton() {
     // https://etherscan.io/tx/0xd92d938932af61bcd2e837436f8c53f35fab2709d2029693258bb8578bdb8a29
     let tx = await contract.setCollateral(
         config.wethAddress, // assets
-        1900, // stabilityFeeValue,
+        300, // stabilityFeeValue,
         10, // liquidationFeeValue,
-        50, // initialCollateralRatioValue,
-        70, // liquidationRatioValue,
+        70, // initialCollateralRatioValue,
+        72, // liquidationRatioValue,
         0, // liquidationDiscountValue,
-        3300, // devaluationPeriodValue,
-        "100000000000000000000000", // gcdLimit, 100k
+        1100, // devaluationPeriodValue,
+        "7000000000000000000000000", // gcdLimit, 7 million
         [config.chainkinkedOracleIndex], // [] oracles,
-        3, // minColP,
-        10, // maxColP
     );
     await tx.wait()
     console.log("Set GTON as collateral tx: " + tx.hash)
- }
+}
+
+async function setWBTCCollateralOnManagerParameters() {
+    console.log("setWBTCCollateralOnManagerParameters")
+    const Factory = await ethers.getContractFactory("VaultManagerParameters")
+    const contract = Factory.attach(config.vaultManagerParameters)
+    
+    let tx = await contract.setCollateral(
+        config.gtonAddress, // asset
+        300, // stabilityFeeValue,
+        10, // liquidationFeeValue,
+        70, // initialCollateralRatioValue,
+        72, // liquidationRatioValue,
+        0, // liquidationDiscountValue,
+        1100, // devaluationPeriodValue,
+        "7000000000000000000000000", // gcdLimit, 7 million
+        [config.chainkinkedOracleIndex], // [] oracles,
+    );
+    await tx.wait()
+    console.log("Set GTON as collateral tx: " + tx.hash)
+}
 
 async function setGtonCollateralOnManagerParameters() {
     console.log("setGtonCollateralOnManagerParameters")
@@ -404,16 +441,14 @@ async function setGtonCollateralOnManagerParameters() {
     
     let tx = await contract.setCollateral(
         config.gtonAddress, // asset
-        2300, // stabilityFeeValue,
+        300, // stabilityFeeValue,
         15, // liquidationFeeValue,
-        30, // initialCollateralRatioValue,
-        60, // liquidationRatioValue,
+        40, // initialCollateralRatioValue,
+        50, // liquidationRatioValue,
         0, // liquidationDiscountValue,
         3300, // devaluationPeriodValue,
-        "100000000000000000000000", // gcdLimit, 100k
+        "7000000000000000000000000", // gcdLimit, 7 million
         [config.uniV3OracleIndex], // [] oracles,
-        3, // minColP,
-        10, // maxColP
     );
     await tx.wait()
     console.log("Set GTON as collateral tx: " + tx.hash)
@@ -439,6 +474,16 @@ async function enableOracleTypeForUSDCOnVaultParams() {
     console.log("Set chainlinked oracle for USDC tx: " + tx.hash)
 }
 
+async function enableOracleTypeForWBTCOnVaultParams() {
+    console.log("enableOracleTypeForWBTCOnVaultParams")
+    const Factory = await ethers.getContractFactory("VaultParameters")
+    const contract = Factory.attach(config.vaultParams)
+
+    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, config.wbtcAddress, true)
+    await tx.wait()
+    console.log("Set chainlinked oracle for USDC tx: " + tx.hash)
+}
+
 async function enableOracleTypeForGtonOnVaultParams() {
     console.log("enableOracleTypeForGtonOnVaultParams")
     const Factory = await ethers.getContractFactory("VaultParameters")
@@ -449,6 +494,27 @@ async function enableOracleTypeForGtonOnVaultParams() {
     console.log("Set chainlinked oracle for GTON tx: " + tx.hash)
 }
 
+async function setChainlinkAddresses() {
+    console.log("setChainlinkAddresses")
+    const Factory = await ethers.getContractFactory("ChainlinkedOracleMainAsset")
+    const contract = Factory.attach(config.chainlinkedOracleMainAsset)
+
+    let tx = await contract.setAggregators(
+        [  
+            config.wethAddress,
+            config.usdcAddress,
+        ], // tokenAddresses1
+        [
+            config.chainlinkETHUSDAddress,
+            config.chainlinkUSDCUSDAddress,
+        ], // _usdAggregators
+        [], // tokenAddresses2
+        [], // _ethAggregators
+    )
+    console.log("Set WETH chainlink address tx: " + tx.hash)
+    await tx.wait()
+    console.log("WETH chainlink address set")
+}
 
 async function setChainlinkAddressForWETH() {
     console.log("setChainlinkAddressForWETH")
@@ -456,7 +522,7 @@ async function setChainlinkAddressForWETH() {
     const contract = Factory.attach(config.chainlinkedOracleMainAsset)
 
     let tx = await contract.setAggregators(
-        [config.usdcAddress], // tokenAddresses1
+        [config.wethAddress], // tokenAddresses1
         [config.chainlinkETHUSDAddress], // _usdAggregators
         [], // tokenAddresses2
         [], // _ethAggregators

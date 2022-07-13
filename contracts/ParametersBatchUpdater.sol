@@ -200,9 +200,7 @@ contract ParametersBatchUpdater is Auth {
                 liquidationDiscountValue,
                 devaluationPeriodValue,
                 gcdLimit,
-                oracles,
-                0,
-                0
+                oracles
             );
 
             collateralRegistry.addCollateral(assets[i]);

@@ -38,11 +38,6 @@ interface IVaultManagerParametersViewer {
 
     function vaultParameters() external view returns (address);
 
-
-    function minColPercent(address asset) external view returns (uint);
-
-    function maxColPercent(address asset) external view returns (uint);
-
     function initialCollateralRatio(address asset) external view returns (uint);
 
     function liquidationRatio(address asset) external view returns (uint);
@@ -92,12 +87,6 @@ contract AssetParametersViewer {
 
         // Oracle types enabled for this asset
         uint[] oracles;
-
-        // Percentage with 0 decimals
-        uint minColPercent;
-
-        // Percentage with 0 decimals
-        uint maxColPercent;
     }
 
 
@@ -127,9 +116,6 @@ contract AssetParametersViewer {
         r.devaluationPeriod = vaultManagerParameters.devaluationPeriod(asset);
 
         r.tokenDebtLimit = vaultParameters.tokenDebtLimit(asset);
-
-        r.minColPercent = vaultManagerParameters.minColPercent(asset);
-        r.maxColPercent = vaultManagerParameters.maxColPercent(asset);
 
         // Memory arrays can't be reallocated so we'll overprovision
         uint[] memory foundOracleTypes = new uint[](maxOracleTypesToSearch);

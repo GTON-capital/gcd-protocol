@@ -7,9 +7,11 @@ const { expect } = require('chai');
 
 contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
     beforeEach(async function () {
-        const parameters = await Parameters.new(deployer, deployer);
+        const parameters = await Parameters.new();
+        await parameters.initialize(deployer, deployer);
         await parameters.setVaultAccess(deployer, true);
-        this.token = await GCD.new(parameters.address);
+        this.token = await GCD.new();
+        await this.token.initialize(parameters.address)
         await this.token.mint(owner, new BN(100));
     });
 
@@ -253,7 +255,7 @@ contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
             function shouldDecreaseApproval (amount) {
                 describe('when there was no approved amount before', function () {
                     it('reverts', async function () {
-                        await expectRevert.assertion(this.token.decreaseAllowance(spender, amount, { from: owner }));
+                        await expectRevert.panic(this.token.decreaseAllowance(spender, amount, { from: owner }));
                     });
                 });
 
@@ -286,7 +288,7 @@ contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
                     });
 
                     it('reverts when more than the full allowance is removed', async function () {
-                        await expectRevert.assertion(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
+                        await expectRevert.panic(this.token.decreaseAllowance(spender, approvedAmount + 1, { from: owner }));
                     });
                 });
             }
@@ -309,7 +311,7 @@ contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
             const spender = ZERO_ADDRESS;
 
             it('reverts', async function () {
-                await expectRevert.assertion(this.token.decreaseAllowance(spender, amount, { from: owner }));
+                await expectRevert.panic(this.token.decreaseAllowance(spender, amount, { from: owner }));
             });
         });
     });
@@ -434,12 +436,12 @@ contract('GCD', function ([deployer, owner, recipient, anotherAccount]) {
         const initialSupply = new BN(100);
 
         it('rejects a null account', async function () {
-            await expectRevert.assertion(this.token.burn(ZERO_ADDRESS, 1));
+            await expectRevert.panic(this.token.burn(ZERO_ADDRESS, 1));
         });
 
         describe('for a non null account', function () {
             it('rejects burning more than balance', async function () {
-                await expectRevert.assertion(this.token.burn(owner, initialSupply.add(new BN(1))));
+                await expectRevert.panic(this.token.burn(owner, initialSupply.add(new BN(1))));
             });
 
             const describeBurn = function (description, amount) {

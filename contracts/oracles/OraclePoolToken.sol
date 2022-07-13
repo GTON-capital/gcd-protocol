@@ -3,22 +3,19 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity 0.8.15;
 
-import "../helpers/SafeMath.sol";
 import "../helpers/IUniswapV2PairFull.sol";
 import "../interfaces/IOracleEth.sol";
 import "../interfaces/IOracleUsd.sol";
 import "../interfaces/IOracleRegistry.sol";
 import "../interfaces/IToken.sol";
 
-
 /**
  * @title OraclePoolToken
  * @dev Calculates the USD price of Uniswap LP tokens
  **/
 contract OraclePoolToken is IOracleUsd {
-    using SafeMath for uint;
 
     IOracleRegistry public immutable oracleRegistry;
 
@@ -81,33 +78,33 @@ contract OraclePoolToken is IOracleUsd {
             ePool = uint(_reserve0);
         }
 
-        uint eCurr = ePool.mul(Q112).div(aPool); // current price of 1 token in WETH
+        uint eCurr = ePool * Q112 / aPool; // current price of 1 token in WETH
         uint ePoolCalc; // calculated WETH pool
 
         if (eCurr < eAvg) {
             // flashloan buying WETH
-            uint sqrtd = ePool.mul((ePool).mul(9).add(
-                aPool.mul(3988000).mul(eAvg).div(Q112)
-            ));
-            uint eChange = sqrt(sqrtd).sub(ePool.mul(1997)).div(2000);
-            ePoolCalc = ePool.add(eChange);
+            uint sqrtd = ePool * ((ePool * 9 + 
+                aPool ) * 3988000 * eAvg / Q112
+            );
+            uint eChange = sqrt(sqrtd) - ePool * 1997 / 2000;
+            ePoolCalc = ePool + eChange;
         } else {
             // flashloan selling WETH
-            uint a = aPool.mul(eAvg);
-            uint b = a.mul(9).div(Q112);
-            uint c = ePool.mul(3988000);
-            uint sqRoot = sqrt(a.div(Q112).mul(b.add(c)));
-            uint d = a.mul(3).div(Q112);
-            uint eChange = ePool.sub(d.add(sqRoot).div(2000));
-            ePoolCalc = ePool.sub(eChange);
+            uint a = aPool * eAvg;
+            uint b = a * 9 / Q112;
+            uint c = ePool * 3988000;
+            uint sqRoot = sqrt(a / Q112 * (b + c));
+            uint d = a * 3 / Q112;
+            uint eChange = ePool - (d + sqRoot) / 2000;
+            ePoolCalc = ePool - eChange;
         }
 
-        uint num = ePoolCalc.mul(2).mul(amount);
+        uint num = ePoolCalc * 2 * amount;
         uint priceInEth;
         if (num > Q112) {
-            priceInEth = num.div(pair.totalSupply()).mul(Q112);
+            priceInEth = num / pair.totalSupply() * Q112;
         } else {
-            priceInEth = num.mul(Q112).div(pair.totalSupply());
+            priceInEth = num * Q112 / pair.totalSupply();
         }
 
         return IOracleEth(oracleRegistry.oracleByAsset(WETH)).ethToUsd(priceInEth);

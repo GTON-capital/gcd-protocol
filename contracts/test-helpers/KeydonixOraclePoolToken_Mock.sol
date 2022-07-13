@@ -3,20 +3,17 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.15;
 
 import "../oracles/ChainlinkedKeydonixOracleMainAssetAbstract.sol";
 import "../oracles/ChainlinkedKeydonixOraclePoolTokenAbstract.sol";
 import "../helpers/IUniswapV2PairFull.sol";
-import "../helpers/SafeMath.sol";
 
 /**
  * @title KeydonixOraclePoolToken_Mock
  * @dev Calculates the USD price of desired tokens
  **/
 contract KeydonixOraclePoolToken_Mock is ChainlinkedKeydonixOraclePoolTokenAbstract {
-    using SafeMath for uint;
 
     constructor(address _keydonixOracleMainAsset_Mock) {
         uniswapOracleMainAsset = ChainlinkedKeydonixOracleMainAssetAbstract(_keydonixOracleMainAsset_Mock);
@@ -40,8 +37,8 @@ contract KeydonixOraclePoolToken_Mock is ChainlinkedKeydonixOraclePoolTokenAbstr
         }
 
         uint lpSupply = pair.totalSupply();
-        uint totalValueInEth_q112 = amount.mul(ePool).mul(2).mul(Q112);
+        uint totalValueInEth_q112 = amount * ePool * 2 * Q112;
 
-        return uniswapOracleMainAsset.ethToUsd(totalValueInEth_q112).div(lpSupply);
+        return uniswapOracleMainAsset.ethToUsd(totalValueInEth_q112) / lpSupply;
     }
 }

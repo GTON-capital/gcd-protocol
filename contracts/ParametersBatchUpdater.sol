@@ -3,9 +3,7 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
-pragma abicoder v2;
-
+pragma solidity ^0.8.15;
 
 import "./VaultParameters.sol";
 import "./interfaces/IVaultManagerParameters.sol";
@@ -13,7 +11,6 @@ import "./interfaces/IBearingAssetOracle.sol";
 import "./interfaces/IOracleRegistry.sol";
 import "./interfaces/ICollateralRegistry.sol";
 import "./interfaces/IVault.sol";
-
 
 /**
  * @title ParametersBatchUpdater

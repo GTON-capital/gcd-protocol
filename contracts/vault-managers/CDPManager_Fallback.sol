@@ -3,8 +3,7 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma solidity ^0.8.15;
 
 import '../interfaces/IOracleRegistry.sol';
 import '../oracles/KeydonixOracleAbstract.sol';
@@ -15,14 +14,11 @@ import '../interfaces/IVaultManagerParameters.sol';
 import '../interfaces/IVaultParameters.sol';
 
 import '../helpers/ReentrancyGuard.sol';
-import '../helpers/SafeMath.sol';
-
 
 /**
  * @title CDPManager01_Fallback
  **/
 contract CDPManager01_Fallback is ReentrancyGuard {
-  using SafeMath for uint;
 
   IVault public immutable vault;
   IVaultManagerParameters public immutable vaultManagerParameters;
@@ -212,11 +208,11 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     // reverts if a position is not liquidatable
     require(_isLiquidatablePosition(asset, owner, usdValue_q112), "GCD Protocol: SAFE_POSITION");
 
-    uint liquidationDiscount_q112 = usdValue_q112.mul(
+    uint liquidationDiscount_q112 = usdValue_q112 * 
       vaultManagerParameters.liquidationDiscount(asset)
-    ).div(DENOMINATOR_1E5);
+      / DENOMINATOR_1E5;
 
-    uint initialLiquidationPrice = usdValue_q112.sub(liquidationDiscount_q112).div(Q112);
+    uint initialLiquidationPrice = (usdValue_q112 - liquidationDiscount_q112) / Q112;
 
     // sends liquidation command to the Vault
     vault.triggerLiquidation(asset, owner, initialLiquidationPrice);
@@ -247,7 +243,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     // position is collateralized if there is no debt
     if (debt == 0) return false;
 
-    return debt.mul(100).mul(Q112).div(usdValue_q112) >= vaultManagerParameters.liquidationRatio(asset);
+    return debt * 100 * Q112 / usdValue_q112 >= vaultManagerParameters.liquidationRatio(asset);
   }
 
   function _selectOracleType(address asset) internal view returns (uint oracleType) {
@@ -290,7 +286,7 @@ contract CDPManager01_Fallback is ReentrancyGuard {
 
     uint usdValue_q112 = getCollateralUsdValue_q112(asset, owner, proofData);
 
-    return debt.mul(100).mul(Q112).div(usdValue_q112);
+    return debt * 100 * Q112 / usdValue_q112;
   }
 
 
@@ -305,9 +301,9 @@ contract CDPManager01_Fallback is ReentrancyGuard {
     address owner
   ) external view returns (uint) {
     uint debt = vault.getTotalDebt(asset, owner);
-    if (debt == 0) return uint(-1);
+    if (debt == 0) return type(uint).max;
 
-    uint collateralLiqPrice = debt.mul(100).mul(Q112).div(vaultManagerParameters.liquidationRatio(asset));
+    uint collateralLiqPrice = debt * 100 * Q112 / vaultManagerParameters.liquidationRatio(asset);
 
     require(IToken(asset).decimals() <= 18, "GCD Protocol: NOT_SUPPORTED_DECIMALS");
 

@@ -146,7 +146,7 @@ module.exports = (context, mode) => {
 
 	const deploy = async () => {
 		context.weth = await WETH.new();
-    context.foundation = await FoundationMock.new();
+    	context.foundation = await FoundationMock.new();
 		context.mainCollateral = await DummyToken.new("STAKE clone", "STAKE", 18, ether('1000000'));
 
 		const uniswapFactoryAddr = await deployContractBytecode(UniswapV2FactoryDeployCode, context.deployer, web3);
@@ -164,12 +164,15 @@ module.exports = (context, mode) => {
 			context.poolToken = await getPoolToken(context.mainCollateral.address);
 		}
 
-		const parametersAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 1);
-		context.gcd = await GCD.new(parametersAddr);
+		const parametersAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 2);
+		context.gcd = await GCD.new();
+		await context.gcd.initialize(parametersAddr);
 
-		const vaultAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 1);
-		context.vaultParameters = await VaultParameters.new(vaultAddr, context.foundation.address);
-		context.vault = await Vault.new(context.vaultParameters.address, '0x0000000000000000000000000000000000000000', context.gcd.address, context.weth.address);
+		const vaultAddr = calculateAddressAtNonce(context.deployer, await web3.eth.getTransactionCount(context.deployer) + 2);
+		context.vaultParameters = await VaultParameters.new();
+		await context.vaultParameters.initialize(vaultAddr, context.foundation.address);
+		context.vault = await Vault.new();
+		await context.vault.initialize(context.vaultParameters.address, context.gcd.address, context.weth.address);
 
 		let minColPercent, maxColPercent
 		let mainAssetOracleType, poolTokenOracleType

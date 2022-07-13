@@ -3,11 +3,9 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.15;
 
 import "../helpers/ERC20Like.sol";
-import "../helpers/SafeMath.sol";
 import "../interfaces/IAggregator.sol";
 import "../helpers/IUniswapV2Factory.sol";
 import "../oracles/OracleSimple.sol";
@@ -17,17 +15,16 @@ import "../oracles/OracleSimple.sol";
  * @dev Calculates the USD price of desired tokens
  **/
 contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
-    using SafeMath for uint;
 
     uint public immutable Q112 = 2 ** 112;
     uint public immutable ETH_USD_DENOMINATOR = 100000000;
 
     IAggregator public immutable ethUsdChainlinkAggregator;
 
-    MockIUniswapV2Factory public immutable uniswapFactory;
+    UniswapV2FactoryI public immutable uniswapFactory;
 
     constructor(
-        MockIUniswapV2Factory uniFactory,
+        UniswapV2FactoryI uniFactory,
         address weth,
         IAggregator chainlinkAggregator
     )
@@ -60,9 +57,9 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
         // WETH reserve of {Token}/WETH pool
         uint wethReserve = ERC20Like(WETH).balanceOf(uniswapPair);
 
-        uint wethResult = amount.mul(wethReserve);
+        uint wethResult = amount * wethReserve;
 
-        return ethToUsd(wethResult).mul(Q112).div(tokenReserve);
+        return ethToUsd(wethResult) * Q112 / tokenReserve;
     }
 
     function assetToEth(address asset, uint amount) public override view returns (uint) {
@@ -82,7 +79,7 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
         // WETH reserve of {Token}/WETH pool
         uint wethReserve = ERC20Like(WETH).balanceOf(uniswapPair);
 
-        return amount.mul(wethReserve).mul(Q112);
+        return amount * wethReserve * Q112;
     }
 
     /**
@@ -92,6 +89,6 @@ contract Keep3rOracleMainAsset_Mock is ChainlinkedOracleSimple {
     function ethToUsd(uint ethAmount) public override view returns (uint) {
         require(ethUsdChainlinkAggregator.latestTimestamp() > block.timestamp - 6 hours, "GCD Protocol: OUTDATED_CHAINLINK_PRICE");
         uint ethUsdPrice = uint(ethUsdChainlinkAggregator.latestAnswer());
-        return ethAmount.mul(ethUsdPrice).div(ETH_USD_DENOMINATOR);
+        return ethAmount * ethUsdPrice / ETH_USD_DENOMINATOR;
     }
 }

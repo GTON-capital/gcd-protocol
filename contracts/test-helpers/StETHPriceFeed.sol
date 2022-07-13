@@ -4,7 +4,7 @@
 Copyright 2021 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
 
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.15;
 
 import "../interfaces/IStableSwap.sol";
 import "../interfaces/IStableSwapStateOracle.sol";

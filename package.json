@@ -6,8 +6,10 @@
   "license": "Business Source License 1.1",
   "scripts": {
     "deploy:gcd:goerli": "hardhat run --network goerli ./scripts/deployGCD.js",
+    "deploy:gcd:ropsten": "hardhat run --network ropsten ./scripts/deployGCD.js",
     "deploy:gcd:gton": "hardhat run --network gton ./scripts/deployGCD.js",
     "deploy:deployTokens:goerli": "hardhat run --network goerli ./scripts/deployTokens.js",
+    "deploy:deployTokens:gton": "hardhat run --network gton ./scripts/deployTokens.js",
     "increaseCardinality": "hardhat run --network goerli ./scripts/uniswapPoolUpdate.ts"
   },
   "dependencies": {
@@ -16,6 +18,8 @@
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-etherscan": "^3.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/contracts-upgradeable": "^4.7.0",
+    "@openzeppelin/hardhat-upgrades": "^1.19.0",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^6.0.0",
     "@uniswap/v3-core": "^1.0.1",
@@ -23,7 +27,7 @@
     "chai-arrays": "^2.2.0",
     "dotenv": "^8.2.0",
     "eth-gas-reporter": "^0.2.17",
-    "ethers": "^5.0.0",
+    "ethers": "^5.6.9",
     "find-config": "^1.0.0",
     "hardhat": "^2.9.7",
     "hardhat-gas-reporter": "^1.0.8",

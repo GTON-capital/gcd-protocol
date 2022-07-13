@@ -4,13 +4,12 @@
 Copyright 2021 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
 
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
 import "./EmptyToken.sol";
 import "../interfaces/IStETH.sol";
 
 contract StETH is IStETH, EmptyToken {
-  using SafeMath for uint;
 
   uint256 public totalPooledEther;
   bytes32 internal constant TOTAL_SHARES_POSITION = keccak256("lido.StETH.totalShares");
@@ -34,7 +33,7 @@ contract StETH is IStETH, EmptyToken {
   }
 
   function _mintShares(uint256 _sharesAmount) internal returns (uint256 newTotalShares) {
-    newTotalShares = _getTotalShares().add(_sharesAmount);
+    newTotalShares = _getTotalShares() + _sharesAmount;
     setStorageUint256(TOTAL_SHARES_POSITION, newTotalShares);
   }
 
@@ -55,10 +54,7 @@ contract StETH is IStETH, EmptyToken {
     if (totalShares == 0) {
       return 0;
     } else {
-      return _sharesAmount
-      .mul(_getTotalPooledEther())
-      .div(totalShares);
+      return _sharesAmount * _getTotalPooledEther() / totalShares;
     }
   }
-
 }

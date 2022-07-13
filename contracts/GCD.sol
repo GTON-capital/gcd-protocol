@@ -3,18 +3,17 @@
 /*
   Copyright 2020 Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
 import "./VaultParameters.sol";
-import "./helpers/SafeMath.sol";
-
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 
 /**
  * @title GCD token implementation
  * @dev ERC20 token
  **/
-contract GCD is Auth {
-    using SafeMath for uint;
+contract GCD is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // name of the token
     string public constant name = "GCD Stablecoin";
@@ -50,7 +49,14 @@ contract GCD is Auth {
     /**
       * @param _parameters The address of system parameters contract
      **/
-    constructor(address _parameters) Auth(_parameters) {}
+    function initialize(address _parameters) public initializer {
+        initializeAuth(_parameters);
+    }
+
+    /**
+      * Restricted upgrades function
+     **/
+    function _authorizeUpgrade(address) internal override onlyManager {}
 
     /**
       * @notice Only Vault can mint GCD
@@ -62,8 +68,8 @@ contract GCD is Auth {
     function mint(address to, uint amount) external onlyVault {
         require(to != address(0), "GCD: ZERO_ADDRESS");
 
-        balanceOf[to] = balanceOf[to].add(amount);
-        totalSupply = totalSupply.add(amount);
+        balanceOf[to] = balanceOf[to] + amount;
+        totalSupply = totalSupply + amount;
 
         emit Transfer(address(0), to, amount);
     }
@@ -110,10 +116,10 @@ contract GCD is Auth {
 
         if (from != msg.sender) {
             require(allowance[from][msg.sender] >= amount, "GCD: INSUFFICIENT_ALLOWANCE");
-            _approve(from, msg.sender, allowance[from][msg.sender].sub(amount));
+            _approve(from, msg.sender, allowance[from][msg.sender] - amount);
         }
-        balanceOf[from] = balanceOf[from].sub(amount);
-        balanceOf[to] = balanceOf[to].add(amount);
+        balanceOf[from] = balanceOf[from] - amount;
+        balanceOf[to] = balanceOf[to] + amount;
 
         emit Transfer(from, to, amount);
         return true;
@@ -143,7 +149,7 @@ contract GCD is Auth {
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint addedValue) public virtual returns (bool) {
-        _approve(msg.sender, spender, allowance[msg.sender][spender].add(addedValue));
+        _approve(msg.sender, spender, allowance[msg.sender][spender] + addedValue);
         return true;
     }
 
@@ -162,7 +168,7 @@ contract GCD is Auth {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint subtractedValue) public virtual returns (bool) {
-        _approve(msg.sender, spender, allowance[msg.sender][spender].sub(subtractedValue));
+        _approve(msg.sender, spender, allowance[msg.sender][spender] - subtractedValue);
         return true;
     }
 
@@ -175,8 +181,10 @@ contract GCD is Auth {
     }
 
     function _burn(address from, uint amount) internal virtual {
-        balanceOf[from] = balanceOf[from].sub(amount);
-        totalSupply = totalSupply.sub(amount);
+        // uint256 accountBalance = balanceOf[from];
+        // require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
+        balanceOf[from] -= amount;
+        totalSupply -= amount;
 
         emit Transfer(from, address(0), amount);
     }

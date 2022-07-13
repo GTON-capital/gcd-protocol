@@ -3,13 +3,14 @@
 /*
   Copyright 2020 Unit Protocol: Artem Zakharov (az@unit.xyz).
 */
-pragma solidity 0.7.6;
+pragma solidity ^0.8.15;
 
-import "./helpers/SafeMath.sol";
 import "./VaultParameters.sol";
 import "./helpers/TransferHelper.sol";
 import "./GCD.sol";
 import "./interfaces/IWETH.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 
 /**
  * @title Vault
@@ -18,27 +19,20 @@ import "./interfaces/IWETH.sol";
  * @notice Only Vault can manage supply of GCD token
  * @notice Vault will not be changed/upgraded after initial deployment for the current stablecoin version
  **/
-contract Vault is Auth {
-    using SafeMath for uint;
-
-    // COL token address
-    address public immutable col;
+contract Vault is Initializable, UUPSUpgradeable, AuthInitializable {
 
     // WETH token address
-    address payable public immutable weth;
+    address payable public weth;
 
     uint public constant DENOMINATOR_1E5 = 1e5;
 
     uint public constant DENOMINATOR_1E2 = 1e2;
 
     // GCD token address
-    address public immutable gcd;
+    address public gcd;
 
     // collaterals whitelist
     mapping(address => mapping(address => uint)) public collaterals;
-
-    // COL token collaterals
-    mapping(address => mapping(address => uint)) public colToken;
 
     // user debts
     mapping(address => mapping(address => uint)) public debts;
@@ -71,14 +65,22 @@ contract Vault is Auth {
 
     /**
      * @param _parameters The address of the system parameters
-     * @param _col COL token address
      * @param _gcd GCD token address
      **/
-    constructor(address _parameters, address _col, address _gcd, address payable _weth) Auth(_parameters) {
-        col = _col;
+    function initialize(
+        address _parameters, 
+        address _gcd, 
+        address payable _weth
+    ) public initializer {
+        initializeAuth(_parameters);
         gcd = _gcd;
         weth = _weth;
     }
+
+    /**
+      * Restricted upgrades function
+     **/
+    function _authorizeUpgrade(address) internal override onlyManager {}
 
     // only accept ETH via fallback from the WETH contract
     receive() external payable {
@@ -94,7 +96,7 @@ contract Vault is Auth {
 
         // calculate fee using stored stability fee
         uint debtWithFee = getTotalDebt(asset, user);
-        tokenDebts[asset] = tokenDebts[asset].sub(debts[asset][user]).add(debtWithFee);
+        tokenDebts[asset] = tokenDebts[asset] - debts[asset][user] + debtWithFee;
         debts[asset][user] = debtWithFee;
 
         stabilityFee[asset][user] = vaultParameters.stabilityFee(asset);
@@ -133,7 +135,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to deposit
      **/
     function depositMain(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        collaterals[asset][user] = collaterals[asset][user].add(amount);
+        collaterals[asset][user] = collaterals[asset][user] + amount;
         TransferHelper.safeTransferFrom(asset, user, address(this), amount);
     }
 
@@ -143,7 +145,7 @@ contract Vault is Auth {
      **/
     function depositEth(address user) external payable notLiquidating(weth, user) {
         IWETH(weth).deposit{value: msg.value}();
-        collaterals[weth][user] = collaterals[weth][user].add(msg.value);
+        collaterals[weth][user] = collaterals[weth][user] + msg.value;
     }
 
     /**
@@ -153,7 +155,7 @@ contract Vault is Auth {
      * @param amount The amount of tokens to withdraw
      **/
     function withdrawMain(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        collaterals[asset][user] = collaterals[asset][user].sub(amount);
+        collaterals[asset][user] = collaterals[asset][user] - amount;
         TransferHelper.safeTransfer(asset, user, amount);
     }
 
@@ -163,32 +165,9 @@ contract Vault is Auth {
      * @param amount The amount of ETH to withdraw
      **/
     function withdrawEth(address payable user, uint amount) external hasVaultAccess notLiquidating(weth, user) {
-        collaterals[weth][user] = collaterals[weth][user].sub(amount);
+        collaterals[weth][user] = collaterals[weth][user] - amount;
         IWETH(weth).withdraw(amount);
         TransferHelper.safeTransferETH(user, amount);
-    }
-
-    /**
-     * @notice Tokens must be pre-approved
-     * @dev Adds COL token to a position
-     * @param asset The address of the main collateral token
-     * @param user The address of a position's owner
-     * @param amount The amount of tokens to deposit
-     **/
-    function depositCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user].add(amount);
-        TransferHelper.safeTransferFrom(col, user, address(this), amount);
-    }
-
-    /**
-     * @dev Withdraws COL token from a position
-     * @param asset The address of the main collateral token
-     * @param user The address of a position's owner
-     * @param amount The amount of tokens to withdraw
-     **/
-    function withdrawCol(address asset, address user, uint amount) external hasVaultAccess notLiquidating(asset, user) {
-        colToken[asset][user] = colToken[asset][user].sub(amount);
-        TransferHelper.safeTransfer(col, user, amount);
     }
 
     /**
@@ -209,8 +188,8 @@ contract Vault is Auth {
     {
         require(vaultParameters.isOracleTypeEnabled(oracleType[asset][user], asset), "GCD Protocol: WRONG_ORACLE_TYPE");
         update(asset, user);
-        debts[asset][user] = debts[asset][user].add(amount);
-        tokenDebts[asset] = tokenDebts[asset].add(amount);
+        debts[asset][user] = debts[asset][user] + amount;
+        tokenDebts[asset] = tokenDebts[asset] + amount;
 
         // check GCD limit for token
         require(tokenDebts[asset] <= vaultParameters.tokenDebtLimit(asset), "GCD Protocol: ASSET_DEBT_LIMIT");
@@ -238,8 +217,8 @@ contract Vault is Auth {
     returns(uint)
     {
         uint debt = debts[asset][user];
-        debts[asset][user] = debt.sub(amount);
-        tokenDebts[asset] = tokenDebts[asset].sub(amount);
+        debts[asset][user] = debt - amount;
+        tokenDebts[asset] = tokenDebts[asset] - amount;
         GCD(gcd).burn(user, amount);
 
         return debts[asset][user];
@@ -287,9 +266,7 @@ contract Vault is Auth {
      * @param asset The address of the main collateral token
      * @param positionOwner The address of a position's owner
      * @param mainAssetToLiquidator The amount of main asset to send to a liquidator
-     * @param colToLiquidator The amount of COL to send to a liquidator
      * @param mainAssetToPositionOwner The amount of main asset to send to a position owner
-     * @param colToPositionOwner The amount of COL to send to a position owner
      * @param repayment The repayment in GCD
      * @param penalty The liquidation penalty in GCD
      * @param liquidator The address of a liquidator
@@ -298,9 +275,7 @@ contract Vault is Auth {
         address asset,
         address positionOwner,
         uint mainAssetToLiquidator,
-        uint colToLiquidator,
         uint mainAssetToPositionOwner,
-        uint colToPositionOwner,
         uint repayment,
         uint penalty,
         address liquidator
@@ -311,16 +286,12 @@ contract Vault is Auth {
         require(liquidationBlock[asset][positionOwner] != 0, "GCD Protocol: NOT_TRIGGERED_LIQUIDATION");
 
         uint mainAssetInPosition = collaterals[asset][positionOwner];
-        uint mainAssetToFoundation = mainAssetInPosition.sub(mainAssetToLiquidator).sub(mainAssetToPositionOwner);
-
-        uint colInPosition = colToken[asset][positionOwner];
-        uint colToFoundation = colInPosition.sub(colToLiquidator).sub(colToPositionOwner);
+        uint mainAssetToFoundation = mainAssetInPosition - mainAssetToLiquidator - mainAssetToPositionOwner;
 
         delete liquidationPrice[asset][positionOwner];
         delete liquidationBlock[asset][positionOwner];
         delete debts[asset][positionOwner];
         delete collaterals[asset][positionOwner];
-        delete colToken[asset][positionOwner];
 
         destroy(asset, positionOwner);
 
@@ -329,7 +300,7 @@ contract Vault is Auth {
             if (penalty != 0) {
                 TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), penalty);
             }
-            GCD(gcd).burn(liquidator, repayment.sub(penalty));
+            GCD(gcd).burn(liquidator, repayment - penalty);
         } else {
             if (repayment != 0) {
                 TransferHelper.safeTransferFrom(gcd, liquidator, vaultParameters.foundation(), repayment);
@@ -341,25 +312,13 @@ contract Vault is Auth {
             TransferHelper.safeTransfer(asset, liquidator, mainAssetToLiquidator);
         }
 
-        if (colToLiquidator != 0) {
-            TransferHelper.safeTransfer(col, liquidator, colToLiquidator);
-        }
-
         // send the rest of collateral to a position owner
         if (mainAssetToPositionOwner != 0) {
             TransferHelper.safeTransfer(asset, positionOwner, mainAssetToPositionOwner);
         }
 
-        if (colToPositionOwner != 0) {
-            TransferHelper.safeTransfer(col, positionOwner, colToPositionOwner);
-        }
-
         if (mainAssetToFoundation != 0) {
             TransferHelper.safeTransfer(asset, vaultParameters.foundation(), mainAssetToFoundation);
-        }
-
-        if (colToFoundation != 0) {
-            TransferHelper.safeTransfer(col, vaultParameters.foundation(), colToFoundation);
         }
     }
 
@@ -384,7 +343,7 @@ contract Vault is Auth {
         uint debt = debts[asset][user];
         if (liquidationBlock[asset][user] != 0) return debt;
         uint fee = calculateFee(asset, user, debt);
-        return debt.add(fee);
+        return debt + fee;
     }
 
     /**
@@ -396,8 +355,8 @@ contract Vault is Auth {
      **/
     function calculateFee(address asset, address user, uint amount) public view returns (uint) {
         uint sFeePercent = stabilityFee[asset][user];
-        uint timePast = block.timestamp.sub(lastUpdate[asset][user]);
+        uint timePast = block.timestamp - lastUpdate[asset][user];
 
-        return amount.mul(sFeePercent).mul(timePast).div(365 days).div(DENOMINATOR_1E5);
+        return amount * sFeePercent * timePast/ (365 days) / DENOMINATOR_1E5;
     }
 }

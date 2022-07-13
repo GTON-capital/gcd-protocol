@@ -5,6 +5,7 @@ import "@nomiclabs/hardhat-etherscan"
 import "hardhat-gas-reporter"
 import "@nomiclabs/hardhat-web3"
 import "@nomiclabs/hardhat-truffle5"
+import "@openzeppelin/hardhat-upgrades"
 
 require('dotenv').config();
 import { resolve } from "path";

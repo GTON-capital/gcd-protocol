@@ -5,6 +5,7 @@
   "author": "@bcngod",
   "license": "Business Source License 1.1",
   "scripts": {
+    "deploy:gcd:ethereum": "hardhat run --network mainnet ./scripts/deployGCD.js",
     "deploy:gcd:goerli": "hardhat run --network goerli ./scripts/deployGCD.js",
     "deploy:gcd:ropsten": "hardhat run --network ropsten ./scripts/deployGCD.js",
     "deploy:gcd:gton": "hardhat run --network gton ./scripts/deployGCD.js",

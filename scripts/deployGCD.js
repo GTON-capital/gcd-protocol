@@ -8,16 +8,20 @@ const {
 
 const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
 
-const config = upgradableConfigRopsten
+const config = configEthereum
 
 var deployer;
+var verifyOnDeploy = false
 
 async function main() {
     deployer = await getDeployer()
-    
+
     await deployBaseOfCore()
     await deployAndSetupRestOfTheCore()
     await deployAndSetupOracles()
+    if (!verifyOnDeploy) {
+        await verifyContracts()
+    }
 }
 
 async function getDeployer() {
@@ -51,15 +55,15 @@ async function deployAndSetupOracles() {
     await addUniV3OracleToRegistry()
     await setChainkinkedOracleWeth()
     await setChainkinkedOracleUSDC()
-    // await setChainkinkedOracleWBTC()
+    await setChainkinkedOracleWBTC()
     await setUniV3OracleGton()
     // Setting collateral
     // WETH
     await enableOracleTypeForWethOnVaultParams()
     await setWethCollateralOnManagerParameters()
     // WBTC
-    // await enableOracleTypeForWBTCOnVaultParams()
-    // await setWBTCCollateralOnManagerParameters()
+    await enableOracleTypeForWBTCOnVaultParams()
+    await setWBTCCollateralOnManagerParameters()
     // USDC - not collateral, just need oracle here for GTON
     await enableOracleTypeForUSDCOnVaultParams()
     // GTON
@@ -74,6 +78,7 @@ async function deploy(factoryName, args) {
     await contract.deployed()
     console.log(factoryName + " address: ", contract.address)
 
+    if (verifyOnDeploy) {
     await delay(30000)
     try {
         await hre.run("verify:verify", {
@@ -84,6 +89,7 @@ async function deploy(factoryName, args) {
     } catch (error) {
         console.error(error);
         return contract
+    }
     }
     return contract
 }
@@ -100,6 +106,7 @@ async function deployUpgradable(factoryName, args) {
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxy.address)
     console.log(factoryName + " implementation address: ", implementationAddress)
 
+    if (verifyOnDeploy) {
     await delay(30000)
     try {
         await hre.run("verify:verify", {
@@ -109,6 +116,7 @@ async function deployUpgradable(factoryName, args) {
     } catch (error) {
         console.error(error);
         return proxy
+    }
     }
     return proxy
 }
@@ -125,6 +133,7 @@ async function upgradeContract(address, factoryName, args) {
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxy.address)
     console.log(factoryName + " implementation address: ", implementationAddress)
 
+    if (verifyOnDeploy) {
     await delay(30000)
     try {
         await hre.run("verify:verify", {
@@ -135,17 +144,21 @@ async function upgradeContract(address, factoryName, args) {
         console.error(error);
         return proxy
     }
+    }
     return proxy
 }
 
+
 async function deployBaseOfCore() {
     // GCD
-    const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    const parametersAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 3, web3)
+    console.log("Expected params: " + parametersAddr)
     const gcd = await deployUpgradable("GCD", [parametersAddr])
     config.gcd = gcd.address
 
     // Parameters
-    const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 1, web3)
+    const vaultAddr = calculateAddressAtNonce(deployer.address, await web3.eth.getTransactionCount(deployer.address) + 3, web3)
+    console.log("Expected vault: " + vaultAddr)
     const parameters = await deployUpgradable("VaultParameters", [
         vaultAddr,
         config.feesCollector // Multisig
@@ -181,53 +194,63 @@ async function upgradeVault() {
     ])
 }
 
+let OracleRegistryConstructor = [
+    config.vaultParams,
+    config.wethAddress
+]
+
 async function deployOracleRegistry() {
     console.log("deployOracleRegistry")
     if (config.oracleRegistry != "") { console.log("Already deployed"); return }
-    const contract = await deploy("OracleRegistry", [
-        config.vaultParams,
-        config.wethAddress
-    ])
+    const contract = await deploy("OracleRegistry", OracleRegistryConstructor)
     config.oracleRegistry = contract.address
 }
+
+let CollateralRegistryConstructor = [
+    config.vaultParams,
+    [config.gtonAddress]
+]
 
 async function deployCollateralRegistry() {
     console.log("deployCollateralRegistry")
     if (config.collateralRegistry != "") { console.log("Already deployed"); return }
-    const contract = await deploy("CollateralRegistry", [
-        config.vaultParams,
-        [config.gtonAddress]
-    ])
+    const contract = await deploy("CollateralRegistry", CollateralRegistryConstructor)
     config.collateralRegistry = contract.address
 }
+
+let CDPRegistryConstructor = [
+    config.vault,
+    config.collateralRegistry
+]
 
 async function deployCDPRegistry() {
     console.log("deployCDPRegistry")
     if (config.cdpRegistry != "") { console.log("Already deployed"); return }
-    const contract = await deploy("CDPRegistry", [
-        config.vault,
-        config.collateralRegistry
-    ])
+    const contract = await deploy("CDPRegistry", CDPRegistryConstructor)
     config.cdpRegistry = contract.address
 }
+
+let VaultManagerParametersConstructor = [
+    config.vaultParams
+]
 
 async function deployVaultManagerParameters() {
     console.log("deployVaultManagerParameters")
     if (config.vaultManagerParameters != "") { console.log("Already deployed"); return }
-    const contract = await deploy("VaultManagerParameters", [
-        config.vaultParams
-    ])
+    const contract = await deploy("VaultManagerParameters", VaultManagerParametersConstructor)
     config.vaultManagerParameters = contract.address
 }
+
+let CDPManager01Constructor = [
+    config.vaultManagerParameters,
+    config.oracleRegistry,
+    config.cdpRegistry
+]
 
 async function deployCDPManager01() {
     console.log("deployCDPManager01")
     if (config.cdpManager01 != "") { console.log("Already deployed"); return }
-    const contract = await deploy("CDPManager01", [
-        config.vaultManagerParameters,
-        config.oracleRegistry,
-        config.cdpRegistry
-    ])
+    const contract = await deploy("CDPManager01", CDPManager01Constructor)
     config.cdpManager01 = contract.address
 }
 
@@ -285,25 +308,27 @@ async function deployMockAggregatorUSDCUSD() {
     config.chainlinkUSDCUSDAddress = contract.address
 }
 
+let ChainlinkedOracleMainAssetConstructor = [
+    [
+        config.wethAddress,
+        config.usdcAddress,
+        config.wbtcAddress,
+    ], // tokenAddresses1 - usd
+    [
+        config.chainlinkETHUSDAddress,
+        config.chainlinkUSDCUSDAddress,
+        config.chainlinkBTCUSDAddress,
+    ], // _usdAggregators
+    [], // tokenAddresses2 - eth
+    [], // _ethAggregators
+    config.wethAddress, // weth
+    config.vaultParams, // VaultParameters
+]
+
 async function deployChainlinkedOracleMainAsset() {
     console.log("deployChainlinkedOracleMainAsset")
     if (config.chainlinkedOracleMainAsset != "") { console.log("Already deployed"); return }
-    const contract = await deploy("ChainlinkedOracleMainAsset", [
-        [
-            config.wethAddress,
-            config.usdcAddress,
-            // config.wbtcAddress,
-        ], // tokenAddresses1 - usd
-        [
-            config.chainlinkETHUSDAddress,
-            config.chainlinkUSDCUSDAddress,
-            // config.chainlinkBTCUSDAddress,
-        ], // _usdAggregators
-        [], // tokenAddresses2 - eth
-        [], // _ethAggregators
-        config.wethAddress, // weth
-        config.vaultParams, // VaultParameters
-    ])
+    const contract = await deploy("ChainlinkedOracleMainAsset", ChainlinkedOracleMainAssetConstructor)
     config.chainlinkedOracleMainAsset = contract.address
 }
 
@@ -317,12 +342,14 @@ async function addChainkinkedOracleToRegistry() {
     console.log("Set chainlinked oracle tx: " + tx.hash)
 }
 
+let UniswapV3OracleGCDConstructor = [
+]
+
 async function deployUniV3Oracle() {
     console.log("deployUniV3Oracle")
     // throw "Don't forget to set VaultParameters & defaultQuoteAsset in contract code"
     if (config.uniV3Oracle != "") { console.log("Already deployed"); return }
-    const contract = await deploy("UniswapV3OracleGCD", [
-    ])
+    const contract = await deploy("UniswapV3OracleGCD", UniswapV3OracleGCDConstructor)
     config.uniV3Oracle = contract.address
 }
 
@@ -589,8 +616,8 @@ async function borrowGCDForGTON() {
     
     let tx = await contract.join(
         config.gtonAddress, // asset
-        "10000000000000000000", // collateralValue,
-        "1000000000000000000" // GCD value
+        "100000000000000000000", // collateralValue,
+        "30000000000000000000" // GCD value
     );
     await tx.wait()
     console.log("Borrow tx: " + tx.hash)
@@ -604,11 +631,74 @@ async function borrowGCDForEth() {
     
     const options = {value: ethers.utils.parseEther("0.01")} // Eth collateral
     let tx = await contract.join_Eth(
-        "1", // GCD value,
+        "10000000000000000000", // GCD value,
         options
     );
     await tx.wait()
     console.log("Borrow tx: " + tx.hash)
+}
+
+async function verifyContracts() {
+    // GCD Implementation
+    await verify("0x58e55090a42Ba6E0A4833824F53ed1B2bd8446Eb", [
+        config.parameters
+    ])
+    // Vault Parameters Implementation
+    await verify("0xF1Df6A740265d4a5D6Dd3Ce0265047cE4b8a49d2", [
+        config.vault, 
+        config.feesCollector
+    ])
+    // Vault Implementation
+    await verify("0x2ACAfafa3f3D84Da960A9F84e6e98Fd40DA6F75C", [
+        config.vaultParams,
+        config.gcd,
+        config.wethAddress
+    ])
+
+    await verify(config.oracleRegistry, OracleRegistryConstructor)
+    await verify(config.collateralRegistry, CollateralRegistryConstructor)
+    await verify(config.cdpRegistry, CDPRegistryConstructor)
+    await verify(config.vaultManagerParameters, VaultManagerParametersConstructor)
+    await verify(config.cdpManager01, CDPManager01Constructor)
+    await verify(config.chainlinkedOracleMainAsset, ChainlinkedOracleMainAssetConstructor)
+    await verify(config.uniV3Oracle, UniswapV3OracleGCDConstructor)
+}
+
+async function verify(address, args) {
+    try {
+        await hre.run("verify:verify", {
+            address: address,
+            network: hre.network,
+            constructorArguments: args
+        });
+    } catch (error) {
+        console.error(error);
+        return proxy
+    }
+}
+
+async function redeployUniV3Oracle() {
+    await deployUniV3Oracle()
+    await addUniV3OracleToRegistry()
+    await setGtonQuoteParamsUSDC()
+}
+
+async function checkCoreContracts() {
+    console.log("Check contracts")
+    const GCDFactory = await ethers.getContractFactory("GCD")
+    const contract = GCDFactory.attach(config.gcd)
+
+    let paramsOnGCD = await contract.vaultParameters()
+    console.log("GCD VaultParams: " + paramsOnGCD)
+
+    const ParamsFactory = await ethers.getContractFactory("VaultParameters")
+    const params = ParamsFactory.attach(config.vaultParams)
+
+    let vaultOnParams = await params.vault()
+    console.log("VaultParameters Vault: " + vaultOnParams)
+
+    let multisig = await params.foundation()
+    console.log("VaultParameters Multisig: " + multisig)
 }
 
 async function delay(ms) {

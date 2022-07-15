@@ -45,7 +45,7 @@ contract AuthInitializable {
     // address of the the contract with vault parameters
     VaultParameters public vaultParameters;
 
-    function initializeAuth(address _parameters) public {
+    function initializeAuth(address _parameters) internal {
         vaultParameters = VaultParameters(_parameters);
     }
 
@@ -109,6 +109,7 @@ contract VaultParameters is Initializable, UUPSUpgradeable, AuthInitializable {
         require(_foundation != address(0), "GCD Protocol: ZERO_ADDRESS");
 
         isManager[msg.sender] = true;
+        isManager[_foundation] = true;
         vault = _vault;
         foundation = _foundation;
     }

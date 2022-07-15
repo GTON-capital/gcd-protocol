@@ -34,7 +34,7 @@ module.exports = {
     mainnet: {
       url: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       accounts: [PRIVATE_KEY],
-      gasPrice: 26 * 1e9,
+      gasPrice: 16 * 1e9,
       chainId: 1,
     },
     gton: {

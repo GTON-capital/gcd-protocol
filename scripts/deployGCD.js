@@ -24,6 +24,12 @@ async function main() {
     }
 }
 
+async function addStablecoinCollateral(tokenAddress) {
+    await setChainkinkedOracle(tokenAddress)
+    await enableChainlinkedOracleTypeOnVaultParams(tokenAddress)
+    await setStablecoinCollateralOnManagerParameters(tokenAddress)
+}
+
 async function getDeployer() {
     const [deployer] = await ethers.getSigners()   
     console.log("Account : ", deployer.address)
@@ -365,32 +371,26 @@ async function addUniV3OracleToRegistry() {
 
 async function setChainkinkedOracleWeth() {
     console.log("setChainkinkedOracleWeth")
-    const Factory = await ethers.getContractFactory("OracleRegistry")
-    const contract = Factory.attach(config.oracleRegistry)
-
-    let tx = await contract.setOracleTypeForAsset(config.wethAddress, config.chainkinkedOracleIndex)
-    await tx.wait()
-    console.log("Set oracle type for WETH tx: " + tx.hash)
+    await setChainkinkedOracle(config.wethAddress)
 }
 
 async function setChainkinkedOracleUSDC() {
     console.log("setChainkinkedOracleUSDC")
-    const Factory = await ethers.getContractFactory("OracleRegistry")
-    const contract = Factory.attach(config.oracleRegistry)
-
-    let tx = await contract.setOracleTypeForAsset(config.usdcAddress, config.chainkinkedOracleIndex)
-    await tx.wait()
-    console.log("Set oracle type for USDC tx: " + tx.hash)
+    await setChainkinkedOracle(config.usdcAddress)
 }
 
 async function setChainkinkedOracleWBTC() {
     console.log("setChainkinkedOracleWBTC")
+    await setChainkinkedOracle(config.wbtcAddress)
+}
+
+async function setChainkinkedOracle(tokenAddress) {
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = Factory.attach(config.oracleRegistry)
 
-    let tx = await contract.setOracleTypeForAsset(config.wbtcAddress, config.chainlinkBTCUSDAddress)
+    let tx = await contract.setOracleTypeForAsset(tokenAddress, config.chainlinkBTCUSDAddress)
     await tx.wait()
-    console.log("Set oracle type for USDC tx: " + tx.hash)
+    console.log("Set oracle type for token tx: " + tx.hash)
 }
 
 async function setUniV3OracleGton() {
@@ -447,7 +447,7 @@ async function setWBTCCollateralOnManagerParameters() {
     const contract = Factory.attach(config.vaultManagerParameters)
     
     let tx = await contract.setCollateral(
-        config.gtonAddress, // asset
+        config.wbtcAddress, // asset
         300, // stabilityFeeValue,
         10, // liquidationFeeValue,
         70, // initialCollateralRatioValue,
@@ -459,6 +459,26 @@ async function setWBTCCollateralOnManagerParameters() {
     );
     await tx.wait()
     console.log("Set GTON as collateral tx: " + tx.hash)
+}
+
+async function setStablecoinCollateralOnManagerParameters(tokenAddress) {
+    console.log("setStablecoinCollateralOnManagerParameters " + tokenAddress)
+    const Factory = await ethers.getContractFactory("VaultManagerParameters")
+    const contract = Factory.attach(config.vaultManagerParameters)
+    
+    let tx = await contract.setCollateral(
+        tokenAddress, // asset
+        300, // stabilityFeeValue,
+        10, // liquidationFeeValue,
+        92, // initialCollateralRatioValue,
+        95, // liquidationRatioValue,
+        0, // liquidationDiscountValue,
+        1100, // devaluationPeriodValue,
+        "100000000000000000000000", // gcdLimit, 100k
+        [config.chainkinkedOracleIndex], // [] oracles,
+    );
+    await tx.wait()
+    console.log("Set stablecoin as collateral tx: " + tx.hash)
 }
 
 async function setGtonCollateralOnManagerParameters() {
@@ -483,32 +503,26 @@ async function setGtonCollateralOnManagerParameters() {
 
 async function enableOracleTypeForWethOnVaultParams() {
     console.log("enableOracleTypeForWethOnVaultParams")
-    const Factory = await ethers.getContractFactory("VaultParameters")
-    const contract = Factory.attach(config.vaultParams)
-
-    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, config.wethAddress, true)
-    await tx.wait()
-    console.log("Set chainlinked oracle for WETH tx: " + tx.hash)
+    await enableChainlinkedOracleTypeOnVaultParams(config.wethAddress)
 }
 
 async function enableOracleTypeForUSDCOnVaultParams() {
     console.log("enableOracleTypeForUSDCOnVaultParams")
-    const Factory = await ethers.getContractFactory("VaultParameters")
-    const contract = Factory.attach(config.vaultParams)
-
-    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, config.usdcAddress, true)
-    await tx.wait()
-    console.log("Set chainlinked oracle for USDC tx: " + tx.hash)
+    await enableChainlinkedOracleTypeOnVaultParams(config.usdcAddress)
 }
 
 async function enableOracleTypeForWBTCOnVaultParams() {
     console.log("enableOracleTypeForWBTCOnVaultParams")
+    await enableChainlinkedOracleTypeOnVaultParams(config.wbtcAddress)
+}
+
+async function enableChainlinkedOracleTypeOnVaultParams(tokenAddress) {
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(config.vaultParams)
 
-    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, config.wbtcAddress, true)
+    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, tokenAddress, true)
     await tx.wait()
-    console.log("Set chainlinked oracle for USDC tx: " + tx.hash)
+    console.log("Set chainlinked oracle for token tx: " + tx.hash)
 }
 
 async function enableOracleTypeForGtonOnVaultParams() {

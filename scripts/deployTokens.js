@@ -1,12 +1,25 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 
-var deployer;
+const {
+    configEthereum,
+    upgradableConfigRopsten,
+    configBscTestnet,
+} = require("./config.js")
+
+const verifyOnDeploy = true
+var config = configBscTestnet
+var deployer
 
 async function main() {
     deployer = await getDeployer()
 
-    await deployWETH()
+    // await deployWETH()
+    // await deployUSDC()
+
+    // Deploy Chainlink pricefeeds, mocks if not present
+    await deployMockAggregatorWethUSD()
+    await deployMockAggregatorUSDCUSD()
 }
 
 async function getDeployer() {
@@ -14,6 +27,58 @@ async function getDeployer() {
     console.log("Account : ", deployer.address)
     console.log("Account balance: ", (await deployer.getBalance()).toString()) 
     return deployer
+}
+
+async function deploy(factoryName, args) {
+    const Factory = await ethers.getContractFactory(factoryName)
+    const contract = await Factory.deploy(...args)
+    await contract.deployed()
+    console.log(factoryName + " address: ", contract.address)
+
+    if (verifyOnDeploy) {
+    await delay(20000)
+    try {
+        await hre.run("verify:verify", {
+            address: contract.address,
+            network: hre.network,
+            constructorArguments: args
+        });
+    } catch (error) {
+        console.error(error);
+        return contract
+    }
+    }
+    return contract
+}
+
+async function deployMockAggregatorWethUSD() {
+    console.log("deployMockAggregatorWethUSD")
+    if (config.chainlinkETHUSDAddress != "") { console.log("Already deployed"); return }
+    const name = "ETH / USD"
+    const price = 178954000000
+    const decimals = 8
+
+    const contract = await deploy("MockAggregator", [
+        name,
+        price,
+        decimals
+    ])
+    config.chainlinkETHUSDAddress = contract.address
+}
+
+async function deployMockAggregatorUSDCUSD() {
+    console.log("deployMockAggregatorUSDCUSD")
+    if (config.chainlinkUSDCUSDAddress != "") { console.log("Already deployed"); return }
+    const name = "USDC / USD"
+    const price = 100000000
+    const decimals = 8
+
+    const contract = await deploy("MockAggregator", [
+        name,
+        price,
+        decimals
+    ])
+    config.chainlinkUSDCUSDAddress = contract.address
 }
 
 async function deployWETH() {
@@ -42,6 +107,18 @@ async function deployUSDC() {
     )
     await contract.deployed()
     console.log("USDC Deploy address: ", contract.address)
+
+    await delay(20000)
+    try {
+        await hre.run("verify:verify", {
+            address: contract.address,
+            network: hre.network,
+            constructorArguments: []
+        });
+    } catch (error) {
+        console.error(error);
+        return contract
+    }
 
     let initialize = await contract.initialize(
         "USDC",
@@ -139,6 +216,10 @@ async function bumpNonce(desiredNonce) {
       await tx.wait()
     }
   }
+
+async function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 main()
     .then(() => process.exit(0))

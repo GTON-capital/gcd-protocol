@@ -16,7 +16,8 @@ const {
   PRIVATE_KEY, 
   ETHERSCAN, 
   POLYGONSCAN, 
-  FTMSCAN, 
+  FTMSCAN,
+  BSCSCAN,
   INFURA_API_KEY 
 } = process.env;
 
@@ -34,8 +35,13 @@ module.exports = {
     mainnet: {
       url: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       accounts: [PRIVATE_KEY],
-      gasPrice: 16 * 1e9,
+      gasPrice: 10 * 1e9,
       chainId: 1,
+    },
+    bscTestnet: {
+      accounts: [PRIVATE_KEY],
+      chainId: 97,
+      url: "https://data-seed-prebsc-1-s3.binance.org:8545",
     },
     gton: {
       url: "https://testnet.gton.network",
@@ -76,6 +82,7 @@ module.exports = {
         rinkeby: ETHERSCAN,
         goerli: ETHERSCAN,
         kovan: ETHERSCAN,
+        bscTestnet: BSCSCAN,
         // ftm
         opera: FTMSCAN,
         ftmTestnet: FTMSCAN,
@@ -107,7 +114,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.15",
+        version: "0.8.17",
         settings: {
           optimizer: {
             enabled: true,

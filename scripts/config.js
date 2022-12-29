@@ -45,6 +45,7 @@ var configBscTestnet = {
     ogxtAddress: "0x39833193a76F41f457082F48aDc33cB0A631C8F6",
     chainlinkETHUSDAddress: "0xce74fcab1fd566943b24bb64d4835c73cdcc3ebf",
     chainlinkUSDCUSDAddress: "0xAb242990C671176f2334f4c5fF3589A031A8A461",
+    chainlinkOGXTUSDAddress: "0xE7a8B625873378dD4F9bBBEd4Dbc85129Dd39FC6",
 }
 
 var upgradableConfigRopsten = {

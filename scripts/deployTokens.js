@@ -18,8 +18,9 @@ async function main() {
     // await deployUSDC()
 
     // Deploy Chainlink pricefeeds, mocks if not present
-    await deployMockAggregatorWethUSD()
-    await deployMockAggregatorUSDCUSD()
+    // await deployMockAggregatorWethUSD()
+    // await deployMockAggregatorUSDCUSD()
+    await deployMockAggregatorOGXTUSD()
 }
 
 async function getDeployer() {
@@ -79,6 +80,21 @@ async function deployMockAggregatorUSDCUSD() {
         decimals
     ])
     config.chainlinkUSDCUSDAddress = contract.address
+}
+
+async function deployMockAggregatorOGXTUSD() {
+    console.log("deployMockAggregatorOGXTUSD")
+    if (config.chainlinkOGXTUSDAddress != "") { console.log("Already deployed"); return }
+    const name = "OGXT / USD"
+    const price = 200000000
+    const decimals = 8
+
+    const contract = await deploy("MockAggregator", [
+        name,
+        price,
+        decimals
+    ])
+    config.chainlinkOGXTUSDAddress = contract.address
 }
 
 async function deployWETH() {

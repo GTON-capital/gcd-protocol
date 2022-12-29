@@ -63,7 +63,8 @@ async function deployAndSetupOracles() {
     await addUniV3OracleToRegistry()
     await setChainkinkedOracleWeth()
     await setChainkinkedOracleUSDC()
-    await setUniV3OracleOGXT()
+    // await setUniV3OracleOGXT() // ethereum
+    await setChainkinkedOracleOGXT() // bsc testnet
     // Setting collateral
     // WETH
     await enableOracleTypeForWethOnVaultParams()
@@ -343,6 +344,11 @@ async function setChainkinkedOracleUSDC() {
     await setChainkinkedOracle(config.usdcAddress)
 }
 
+async function setChainkinkedOracleOGXT() {
+    console.log("setChainkinkedOracleOGXT")
+    await setChainkinkedOracle(config.ogxtAddress)
+}
+
 async function setChainkinkedOracle(tokenAddress) {
     const Factory = await ethers.getContractFactory("OracleRegistry")
     const contract = Factory.attach(config.oracleRegistry)
@@ -464,7 +470,9 @@ async function enableOracleTypeForOGXTOnVaultParams() {
     const Factory = await ethers.getContractFactory("VaultParameters")
     const contract = Factory.attach(config.vaultParams)
 
-    let tx = await contract.setOracleType(config.uniV3OracleIndex, config.ogxtAddress, true)
+    // config.uniV3OracleIndex - ethereum
+    // config.chainkinkedOracleIndex - bsc testnet
+    let tx = await contract.setOracleType(config.chainkinkedOracleIndex, config.ogxtAddress, true)
     await tx.wait()
     console.log("Set chainlinked oracle for OGXT tx: " + tx.hash)
 }
@@ -476,19 +484,17 @@ async function setChainlinkAddresses() {
 
     let tx = await contract.setAggregators(
         [  
-            config.wethAddress,
-            config.usdcAddress,
+            config.ogxtAddress,
         ], // tokenAddresses1
         [
-            config.chainlinkETHUSDAddress,
-            config.chainlinkUSDCUSDAddress,
+            config.chainlinkOGXTUSDAddress,
         ], // _usdAggregators
         [], // tokenAddresses2
         [], // _ethAggregators
     )
-    console.log("Set WETH chainlink address tx: " + tx.hash)
+    console.log("Set oracle addresses on Chainlinked tx: " + tx.hash)
     await tx.wait()
-    console.log("WETH chainlink address set")
+    console.log("Oracle addresses on Chainlinked  set")
 }
 
 async function setChainlinkAddressForWETH() {

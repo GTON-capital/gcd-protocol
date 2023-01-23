@@ -10,7 +10,7 @@ const poolAddressEthereum = "0xe40a2eab69d4de66bccb0ac8e2517a230c6312e8"
 const poolAddress = poolAddressGoerli
 
 async function main() {
-    await increaseCardinality()
+    // await increaseCardinality()
 }
 
 async function increaseCardinality() {

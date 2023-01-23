@@ -20,7 +20,7 @@ async function main() {
     // Deploy Chainlink pricefeeds, mocks if not present
     // await deployMockAggregatorWethUSD()
     // await deployMockAggregatorUSDCUSD()
-    await deployMockAggregatorOGXTUSD()
+    // await deployMockAggregatorOGXTUSD()
 }
 
 async function getDeployer() {

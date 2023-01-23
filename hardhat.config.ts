@@ -38,6 +38,11 @@ module.exports = {
       gasPrice: 10 * 1e9,
       chainId: 1,
     },
+    bsc: {
+      accounts: [PRIVATE_KEY],
+      chainId: 56,
+      url: "https://bsc-dataseed.binance.org/",
+    },
     bscTestnet: {
       accounts: [PRIVATE_KEY],
       chainId: 97,
@@ -73,7 +78,12 @@ module.exports = {
       url: "https://xapi.testnet.fantom.network/lachesis",
       accounts: [PRIVATE_KEY],
       // gasPrice: 35000000000,
-    }
+    },
+    mumbai: {
+      networkId: 80001,
+      url: "https://matic-mumbai.chainstacklabs.com",
+      accounts: [PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
@@ -82,6 +92,7 @@ module.exports = {
         rinkeby: ETHERSCAN,
         goerli: ETHERSCAN,
         kovan: ETHERSCAN,
+        bsc: BSCSCAN,
         bscTestnet: BSCSCAN,
         // ftm
         opera: FTMSCAN,

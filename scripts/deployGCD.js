@@ -3,13 +3,15 @@ const { upgrades } = require("hardhat");
 const { ethers } = hre;
 const {
     configEthereum,
+    configBsc,
+    configMumbai,
     upgradableConfigRopsten,
     configBscTestnet,
 } = require("./config.js");
 
 const { calculateAddressAtNonce } = require('../test/gcd/helpers/deployUtils.js');
 
-var config = configBscTestnet
+var config = configBsc
 
 var deployer;
 var verifyOnDeploy = true
@@ -17,12 +19,12 @@ var verifyOnDeploy = true
 async function main() {
     deployer = await getDeployer()
 
-    await deployBaseOfCore()
-    await deployAndSetupRestOfTheCore()
-    await deployAndSetupOracles()
-    if (!verifyOnDeploy) {
-        await verifyContracts()
-    }
+    // await deployBaseOfCore()
+    // await deployAndSetupRestOfTheCore()
+    // await deployAndSetupOracles()
+    // if (!verifyOnDeploy) {
+    //     await verifyContracts()
+    // }
 }
 
 async function addStablecoinCollateral(tokenAddress) {
@@ -50,7 +52,30 @@ async function deployAndSetupRestOfTheCore() {
     await setCDPManagerVaultAccess()
 }
 
-async function deployAndSetupOracles() {
+async function deployAndSetupOraclesBSC() {
+    if (config.chainlinkBNBUSDAddress == "" || 
+        config.chainlinkBUSDUSDAddress == "" ||
+        config.chainlinkUSDCUSDAddress == "") { 
+            console.log("Need chainlink oracles"); return 
+        }
+    // Deploy base proxies
+    await deployChainlinkedOracleMainAsset()
+    await deployUniV3Oracle()
+    // Setup of oracles
+    await addChainkinkedOracleToRegistry()
+    await addUniV3OracleToRegistry()
+    // Setting collateral
+    // WETH
+    await setChainkinkedOracleWeth()
+    await enableOracleTypeForWethOnVaultParams()
+    await setWethCollateralOnManagerParameters()
+    // USDC
+    await addStablecoinCollateral(config.usdcAddress)
+    // BUSD
+    await addStablecoinCollateral(config.busdAddress)
+}
+
+async function deployAndSetupOraclesETH() {
     if (config.chainlinkUSDCUSDAddress == "" || 
         config.chainlinkETHUSDAddress == "") { 
             console.log("Need chainlink oracles"); return 
@@ -65,7 +90,7 @@ async function deployAndSetupOracles() {
     await setChainkinkedOracleUSDC()
     // await setUniV3OracleOGXT() // ethereum
     await setChainkinkedOracleOGXT() // bsc testnet
-    // Setting collateral
+    // Setting collateral2
     // WETH
     await enableOracleTypeForWethOnVaultParams()
     await setWethCollateralOnManagerParameters()
@@ -285,10 +310,12 @@ let ChainlinkedOracleMainAssetConstructor = [
     [
         config.wethAddress,
         config.usdcAddress,
+        config.busdAddress,
     ], // tokenAddresses1 - usd
     [
-        config.chainlinkETHUSDAddress,
+        config.chainlinkBNBUSDAddress,
         config.chainlinkUSDCUSDAddress,
+        config.chainlinkBUSDUSDAddress,
     ], // _usdAggregators
     [], // tokenAddresses2 - eth
     [], // _ethAggregators
@@ -340,6 +367,11 @@ async function setChainkinkedOracleWeth() {
 }
 
 async function setChainkinkedOracleUSDC() {
+    console.log("setChainkinkedOracleUSDC")
+    await setChainkinkedOracle(config.usdcAddress)
+}
+
+async function setChainkinkedOracleBUSD() {
     console.log("setChainkinkedOracleUSDC")
     await setChainkinkedOracle(config.usdcAddress)
 }
@@ -403,7 +435,7 @@ async function setUniV3OracleOGXT() {
         [config.chainkinkedOracleIndex], // [] oracles,
     );
     await tx.wait()
-    console.log("Set OGXT as collateral tx: " + tx.hash)
+    console.log("Set WETH as collateral tx: " + tx.hash)
 }
 
 async function setStablecoinCollateralOnManagerParameters(tokenAddress) {
@@ -419,7 +451,7 @@ async function setStablecoinCollateralOnManagerParameters(tokenAddress) {
         95, // liquidationRatioValue,
         0, // liquidationDiscountValue,
         1100, // devaluationPeriodValue,
-        "100000000000000000000000", // gcdLimit, 100k
+        "1000000000000000000000000", // gcdLimit, 1mil
         [config.chainkinkedOracleIndex], // [] oracles,
     );
     await tx.wait()

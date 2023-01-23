@@ -25,6 +25,54 @@ var configEthereum = {
     chainlinkBTCUSDAddress: "0xf4030086522a5beea4988f8ca5b36dbc97bee88c",
 }
 
+var configBsc = {
+    chainkinkedOracleIndex: 1,
+    uniV3OracleIndex: 2,
+    gcd: "0x213ecAe6b3CbC0AD976f7d82626546d5b63A71cB",
+    vaultParams: "0x1c2a972841A64872178fC510CeE5C87301d91160",
+    vault: "0xAAbBB7471bCA1C152C690f10A1A9e006FE17BD7e",
+    oracleRegistry: "0x2E9B7ce6124284Fb6Afe402A619278E92Ac8Cf6B",
+    collateralRegistry: "0x06Ad06040e001CeB6e907478238954723E464d9e",
+    cdpRegistry: "0xe498a9A86D07EF5bb59218937824234E9d15168d",
+    vaultManagerParameters: "0x3888C25AcDaB370dc2B85550E0943B4253346174",
+    cdpManager01: "0x6aA3cDc7a0Ab05C58105AA4C85568583f2b7e02f",
+    chainlinkedOracleMainAsset: "0xa424eB5D1098EA644591d49b96D39dbc69675F04",
+    uniV3Oracle: "0x67717ea6376F18F217b733eE18abaAD480dAC928",
+    // External contracts
+    feesCollector: "0x93B443d1f4081b58dE5ca637D63E49880C04ac4a",
+    wethAddress: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    usdcAddress: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+    // ogxtAddress: "0x39833193a76f41f457082f48adc33cb0a631c8f6",
+    busdAddress: "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+    chainlinkUSDCUSDAddress: "0x51597f405303c4377e36123cbc172b13269ea163",
+    // chainlinkOGXTUSDAddress: "",
+    chainlinkBNBUSDAddress: "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee",
+    chainlinkBUSDUSDAddress: "0xcbb98864ef56e9042e7d2efef76141f15731b82f",
+}
+
+var configMumbai = {
+    chainkinkedOracleIndex: 1,
+    uniV3OracleIndex: 2,
+    gcd: "0x213ecAe6b3CbC0AD976f7d82626546d5b63A71cB",
+    vaultParams: "0x1c2a972841A64872178fC510CeE5C87301d91160",
+    vault: "0xAAbBB7471bCA1C152C690f10A1A9e006FE17BD7e",
+    oracleRegistry: "",
+    collateralRegistry: "",
+    cdpRegistry: "",
+    vaultManagerParameters: "",
+    cdpManager01: "",
+    chainlinkedOracleMainAsset: "",
+    uniV3Oracle: "",
+    // External contracts
+    feesCollector: "0x50DF0af8a06f82fCcB0aCb77D8c986785b36d734",
+    wethAddress: "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
+    usdcAddress: "",
+    ogxtAddress: "",
+    chainlinkETHUSDAddress: "",
+    chainlinkUSDCUSDAddress: "",
+    chainlinkOGXTUSDAddress: "",
+}
+
 var configBscTestnet = {
     chainkinkedOracleIndex: 1,
     uniV3OracleIndex: 2,
@@ -74,6 +122,8 @@ var upgradableConfigRopsten = {
 
 module.exports = { 
     configEthereum,
+    configBsc,
+    configMumbai,
     upgradableConfigRopsten,
     configBscTestnet,
  };
